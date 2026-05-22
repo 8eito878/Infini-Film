@@ -703,11 +703,13 @@ export default function CineCanvas() {
   const momentumRaf = useRef(null), animRaf = useRef(null);
   const animActiveRef = useRef(false), focusedRef = useRef(null);
   const filtersRef = useRef(filters);
+  const openFilmAtRef = useRef(null);
 
   const MIN_S = useMemo(() => {
     const vw = window.innerWidth, vh = window.innerHeight;
     return Math.max(0.4, Math.max(vw / ((TILES_X - 1) * pitchX), vh / ((TILES_Y - 1) * pitchY)) * 1.04);
   }, []);
+  const maxSRef = useRef(window.innerWidth <= 768 ? 1.1 : MAX_S);
 
   /* Inject CSS */
   useEffect(() => {
@@ -782,7 +784,7 @@ export default function CineCanvas() {
     cancelAnimationFrame(momentumRaf.current);
     animActiveRef.current = false;
     const vw = window.innerWidth;
-    const defaultS = vw <= 768 ? 0.55 : 0.8;
+    const defaultS = vw <= 768 ? MIN_S : 0.8;
     const s = Math.max(defaultS, MIN_S);
     const px = pitchX * s, py = pitchY * s;
     const totalW = TILES_X * pitchX * s;
@@ -834,7 +836,7 @@ export default function CineCanvas() {
   /* Focus slot — raw target, no wrap-equivalent substitution */
   function focusSlot(slotIdx) {
     const slot = SLOT_POSITIONS[slotIdx]; if (!slot) return;
-    const targetS = MAX_S;
+    const targetS = maxSRef.current;
     const cx = slot.x + CARD_W / 2, cy = slot.y + CARD_H / 2;
     const tx = window.innerWidth / 2 - cx * targetS;
     const ty = window.innerHeight / 2 - cy * targetS;
@@ -929,7 +931,7 @@ export default function CineCanvas() {
     const vp = vpRef.current; if (!vp) return;
     let act = false, moved = false, sx = 0, sy = 0, sox = 0, soy = 0;
     let lx = 0, ly = 0, lt = 0, vx = 0, vy = 0;
-    let pinching = false, pStartDist = 0, pStartScale = 1;
+    let pinching = false, pStartDist = 0, pStartScale = 1, pinchMaxHit = false;
     const TAP_THRESH = 8;
 
     const co = e => e.touches
@@ -946,7 +948,12 @@ export default function CineCanvas() {
     };
 
     const zoomTo = (newS, cx, cy) => {
-      newS = Math.max(MIN_S, Math.min(MAX_S, newS));
+      if (pinching && pStartScale >= maxSRef.current * 0.99 && newS > maxSRef.current && !pinchMaxHit) {
+        pinchMaxHit = true;
+        openFilmAtRef.current?.(cx, cy);
+        return;
+      }
+      newS = Math.max(MIN_S, Math.min(maxSRef.current, newS));
       const oldS = scaleRef.current;
       if (Math.abs(newS - oldS) < 0.001) return;
       const o = offRef.current;
@@ -959,7 +966,10 @@ export default function CineCanvas() {
       if (e.target.closest('.pill,.pan,.pbd,.mbg,.mclose,.mposter,.mscroll,.hdr,.saved-page')) return;
       if (animActiveRef.current) return;
       if (e.touches && e.touches.length === 2) {
+        act = false;
+        vp.classList.remove('drag');
         pinching = true;
+        pinchMaxHit = false;
         pStartDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
         pStartScale = scaleRef.current;
         return;
@@ -993,7 +1003,7 @@ export default function CineCanvas() {
     };
 
     const onE = e => {
-      if (pinching) { pinching = false; return; }
+      if (pinching) { pinching = false; act = false; vp.classList.remove('drag'); return; }
       if (!act) return;
       act = false; vp.classList.remove('drag');
       if (!moved) {
@@ -1022,7 +1032,7 @@ export default function CineCanvas() {
       cancelAnimationFrame(animRaf.current);
       animActiveRef.current = false;
       const oldS = scaleRef.current;
-      const newS = Math.max(MIN_S, Math.min(MAX_S, oldS * Math.exp(-e.deltaY * 0.0035)));
+      const newS = Math.max(MIN_S, Math.min(maxSRef.current, oldS * Math.exp(-e.deltaY * 0.0035)));
       if (Math.abs(newS - oldS) < 0.001) return;
       const o = offRef.current;
       scaleRef.current = newS;
@@ -1053,6 +1063,17 @@ export default function CineCanvas() {
       cancelAnimationFrame(animRaf.current);
     };
   }, [MIN_S, films]);
+
+  openFilmAtRef.current = (cx, cy) => {
+    const el = document.elementFromPoint(cx, cy);
+    const c = el?.closest?.('[data-slot]');
+    if (!c) return;
+    const slotIdx = parseInt(c.dataset.slot, 10);
+    const slot = SLOT_POSITIONS[slotIdx];
+    const film = films[slot.fi]; if (!film) return;
+    const s = scaleRef.current, o = offRef.current;
+    setSelected({ film, cardRect: { x: slot.x * s + o.x, y: slot.y * s + o.y, w: CARD_W * s, h: CARD_H * s } });
+  };
 
   const savedSet = new Set(savedFilms.map(f => f.id));
   const isCanvas = page === "canvas";
