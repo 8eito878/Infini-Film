@@ -54,10 +54,10 @@ const RATINGS_OPTS = [
 
 /* ── Sort options ────────────────────────────────────────────────────────── */
 const SORT_OPTS = [
-  { key: 'added',      label: '追加日' },
-  { key: 'year',       label: '公開年' },
-  { key: 'score',      label: 'スコア' },
-  { key: 'popularity', label: '人気'   },
+  { key: 'added',      label: 'Date Added'   },
+  { key: 'year',       label: 'Release Year' },
+  { key: 'score',      label: 'Score'        },
+  { key: 'popularity', label: 'Popularity'   },
 ];
 
 /* ── Layout ──────────────────────────────────────────────────────────────── */
@@ -259,16 +259,6 @@ html,body{background:var(--bg);color:var(--t1);
 .svi-removing{animation:svi-out .28s ease forwards;pointer-events:none;}
 @keyframes svi-wiggle{0%,100%{transform:rotate(-0.7deg)}50%{transform:rotate(0.7deg)}}
 .svi.svi-edit:not(.svi-removing){animation:svi-wiggle .22s ease-in-out infinite;transform-origin:center;}
-
-/* Sort bar */
-.sv-sort{display:flex;gap:6px;padding:6px 0 14px;overflow-x:auto;-webkit-overflow-scrolling:touch;
-  scrollbar-width:none;-webkit-touch-callout:none;}
-.sv-sort::-webkit-scrollbar{display:none;}
-.sv-sort-btn{flex-shrink:0;display:flex;align-items:center;gap:4px;padding:5px 12px;border-radius:16px;
-  border:1px solid var(--bd);background:transparent;color:var(--t3);font-size:12px;font-weight:500;
-  cursor:pointer;-webkit-tap-highlight-color:transparent;font-family:inherit;-webkit-touch-callout:none;
-  user-select:none;-webkit-user-select:none;}
-.sv-sort-btn.on{background:var(--t1);color:var(--bg);border-color:transparent;}
 
 /* Modal */
 .mbg{position:fixed;inset:0;background:var(--overlay);z-index:400;
@@ -501,17 +491,22 @@ function MCard({ film, slot, style }) {
 }
 
 /* ── Filter Panel ────────────────────────────────────────────────────────── */
-function FilterPanel({ filters, onApply, onClose }) {
+function FilterPanel({ filters, onApply, onClose, showSort = false }) {
   const [loc, setLoc] = useState(filters);
   const [open, setOpen] = useState({});
   const tog = (k, v) => setLoc(p => {
     const a = p[k] || [];
     return { ...p, [k]: a.includes(v) ? a.filter(x => x !== v) : [...a, v] };
   });
-  const reset = () => setLoc({ decade: [], genre: [], language: [], minRating: 0 });
+  const reset = () => setLoc({ decade: [], genre: [], language: [], minRating: 0, sortKey: 'added', sortDir: 'desc' });
   const chev = (
     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
       <polyline points="6 9 12 15 18 9" />
+    </svg>
+  );
+  const sortArrow = dir => (
+    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points={dir === 'desc' ? '6 9 12 15 18 9' : '18 15 12 9 6 15'} />
     </svg>
   );
 
@@ -526,6 +521,42 @@ function FilterPanel({ filters, onApply, onClose }) {
     <div className="pan">
       <div className="ph" />
       <div className="phd">Filters</div>
+
+      {showSort && (
+        <div className="f-sec">
+          <button className="f-hdr" onClick={() => setOpen(o => ({ ...o, sort: !o.sort }))}>
+            <span>
+              Sort
+              {(loc.sortKey !== 'added' || loc.sortDir !== 'desc') && (
+                <span className="f-cnt">
+                  {SORT_OPTS.find(s => s.key === loc.sortKey)?.label ?? 'Date Added'}
+                  {' '}{loc.sortDir === 'desc' ? '↓' : '↑'}
+                </span>
+              )}
+            </span>
+            <span className={`f-chev${open.sort ? " open" : ""}`}>{chev}</span>
+          </button>
+          {open.sort && (
+            <div className="f-chips">
+              {SORT_OPTS.map(({ key, label }) => (
+                <button
+                  key={key}
+                  className={`chip${loc.sortKey === key ? ' on' : ''}`}
+                  style={loc.sortKey === key ? { display: 'inline-flex', alignItems: 'center', gap: '4px' } : {}}
+                  onClick={() => setLoc(p => ({
+                    ...p,
+                    sortKey: key,
+                    sortDir: p.sortKey === key ? (p.sortDir === 'desc' ? 'asc' : 'desc') : 'desc',
+                  }))}
+                >
+                  {label}
+                  {loc.sortKey === key && sortArrow(loc.sortDir)}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {sections.map(({ k, l, opts }) => (
         <div className="f-sec" key={k}>
@@ -586,33 +617,10 @@ const SAVED_PAGE_STYLE = {
 
 function SavedPage({ savedFilms, onRemove, onSelect }) {
   const [editMode, setEditMode] = useState(false);
-  const [sort, setSort] = useState({ key: 'added', dir: 'desc' });
   const bgTimerRef = useRef(null);
 
-  function toggleSort(key) {
-    setSort(s => s.key === key
-      ? { key, dir: s.dir === 'desc' ? 'asc' : 'desc' }
-      : { key, dir: 'desc' });
-  }
-
-  const sortedFilms = useMemo(() => {
-    const { key, dir } = sort;
-    const arr = savedFilms.map((f, i) => ({ ...f, _idx: i }));
-    arr.sort((a, b) => {
-      let av, bv;
-      if      (key === 'added')      { av = a._idx;            bv = b._idx; }
-      else if (key === 'year')       { av = a.release_date ?? ''; bv = b.release_date ?? ''; }
-      else if (key === 'score')      { av = a.vote_average ?? 0; bv = b.vote_average ?? 0; }
-      else                           { av = a.vote_count ?? 0;  bv = b.vote_count ?? 0; }
-      if (av < bv) return dir === 'asc' ? -1 : 1;
-      if (av > bv) return dir === 'asc' ? 1 : -1;
-      return 0;
-    });
-    return arr;
-  }, [savedFilms, sort]);
-
   function handleBgTouchStart(e) {
-    if (e.target.closest('.svx,.sv-sort')) return;
+    if (e.target.closest('.svx')) return;
     if (bgTimerRef.current) return;
     bgTimerRef.current = setTimeout(() => {
       bgTimerRef.current = null;
@@ -623,12 +631,6 @@ function SavedPage({ savedFilms, onRemove, onSelect }) {
     clearTimeout(bgTimerRef.current);
     bgTimerRef.current = null;
   }
-
-  const chev = dir => (
-    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-      <polyline points={dir === 'desc' ? '6 9 12 15 18 9' : '18 15 12 9 6 15'} />
-    </svg>
-  );
 
   if (savedFilms.length === 0) return (
     <div className="saved-page" style={SAVED_PAGE_STYLE}>
@@ -643,17 +645,8 @@ function SavedPage({ savedFilms, onRemove, onSelect }) {
   return (
     <div className="saved-page" style={SAVED_PAGE_STYLE} onClick={() => setEditMode(false)}
       onTouchStartCapture={handleBgTouchStart} onTouchEndCapture={handleBgTouchEnd} onTouchCancelCapture={handleBgTouchEnd}>
-      <div className="sv-sort" onClick={e => e.stopPropagation()}>
-        {SORT_OPTS.map(({ key, label }) => (
-          <button key={key} className={`sv-sort-btn${sort.key === key ? ' on' : ''}`}
-            onClick={() => toggleSort(key)}>
-            {label}
-            {sort.key === key && chev(sort.dir)}
-          </button>
-        ))}
-      </div>
       <div className="sv-grid">
-        {sortedFilms.map(f => (
+        {savedFilms.map(f => (
           <SvItem key={f.id} film={f} onRemove={onRemove} onSelect={onSelect}
             editMode={editMode} onEnterEdit={() => setEditMode(true)} onExitEdit={() => setEditMode(false)} />
         ))}
@@ -896,7 +889,7 @@ function FilmModal({ film, cardRect, isSaved, onToggleSave, onClose, closing, de
 export default function CineCanvas() {
   const [films, setFilms] = useState([]);
   const [filters, setFilters] = useState({ decade: [], genre: [], language: [], minRating: 0 });
-  const [savedFilters, setSavedFilters] = useState({ decade: [], genre: [], language: [], minRating: 0 });
+  const [savedFilters, setSavedFilters] = useState({ decade: [], genre: [], language: [], minRating: 0, sortKey: 'added', sortDir: 'desc' });
   const [showFilter, setShowFilter] = useState(false);
   const [page, setPage] = useState("canvas");
   const [selected, setSelected] = useState(null);
@@ -1274,8 +1267,7 @@ export default function CineCanvas() {
   const filteredSavedFilms = useMemo(() => {
     const f = savedFilters;
     const active = f.decade.length > 0 || f.genre.length > 0 || f.language.length > 0 || f.minRating !== 0;
-    if (!active) return savedFilms;
-    return savedFilms.filter(film => {
+    const base = active ? savedFilms.filter(film => {
       if (f.genre.length > 0) {
         const ids = f.genre.map(g => GENRE_IDS[g]);
         if (!film.genre_ids?.some(id => ids.includes(id))) return false;
@@ -1295,6 +1287,18 @@ export default function CineCanvas() {
       }
       if (f.minRating > 0 && (film.vote_average ?? 0) < f.minRating) return false;
       return true;
+    }) : savedFilms;
+    const { sortKey = 'added', sortDir = 'desc' } = f;
+    const idxMap = new Map(savedFilms.map((film, i) => [film.id, i]));
+    return [...base].sort((a, b) => {
+      let av, bv;
+      if      (sortKey === 'added')      { av = idxMap.get(a.id) ?? 0; bv = idxMap.get(b.id) ?? 0; }
+      else if (sortKey === 'year')       { av = a.release_date ?? ''; bv = b.release_date ?? ''; }
+      else if (sortKey === 'score')      { av = a.vote_average ?? 0;  bv = b.vote_average ?? 0; }
+      else                               { av = a.vote_count ?? 0;    bv = b.vote_count ?? 0; }
+      if (av < bv) return sortDir === 'asc' ? -1 : 1;
+      if (av > bv) return sortDir === 'asc' ? 1 : -1;
+      return 0;
     });
   }, [savedFilms, savedFilters]);
 
@@ -1666,7 +1670,7 @@ export default function CineCanvas() {
       {/* Filter panel */}
       {showFilter && (
         page === "saved"
-          ? <FilterPanel filters={savedFilters} onApply={applySavedFilters} onClose={() => setShowFilter(false)} />
+          ? <FilterPanel filters={savedFilters} onApply={applySavedFilters} onClose={() => setShowFilter(false)} showSort />
           : <FilterPanel filters={filters} onApply={applyFilters} onClose={() => setShowFilter(false)} />
       )}
 
