@@ -30,7 +30,7 @@ const LANGUAGES = Object.keys(LANGUAGE_CODES);
 
 
 /* ── Decades ─────────────────────────────────────────────────────────────── */
-const DECADES = ["~1960s", "1970s", "1980s", "1990s", "2000s", "2010s", "2020s~"];
+const DECADES = ["2020s~", "2010s", "2000s", "1990s", "1980s", "1970s", "~1960s"];
 const DECADE_RANGES = {
   "~1960s": { gte: "1900-01-01", lte: "1969-12-31" },
   "1970s":  { gte: "1970-01-01", lte: "1979-12-31" },
@@ -44,12 +44,12 @@ const DECADE_RANGES = {
 /* ── Rating options ──────────────────────────────────────────────────────── */
 const RATINGS_OPTS = [
   { l: "All",  v: -1  },
-  { l: "6.0+", v: 6.0 },
-  { l: "6.5+", v: 6.5 },
-  { l: "7.0+", v: 7.0 },
-  { l: "7.5+", v: 7.5 },
-  { l: "8.0+", v: 8.0 },
   { l: "8.5+", v: 8.5 },
+  { l: "8.0+", v: 8.0 },
+  { l: "7.5+", v: 7.5 },
+  { l: "7.0+", v: 7.0 },
+  { l: "6.5+", v: 6.5 },
+  { l: "6.0+", v: 6.0 },
 ];
 
 /* ── Sort options ────────────────────────────────────────────────────────── */
@@ -198,18 +198,23 @@ html,body{background:var(--bg);color:var(--t1);
 .pbd{position:fixed;inset:0;background:var(--backdrop);z-index:300;animation:fi .2s forwards;opacity:0;}
 @keyframes fi{to{opacity:1;}}
 .pan{position:fixed;bottom:0;left:0;right:0;z-index:301;background:var(--bg3);border-top:1px solid var(--bd2);
-  border-radius:20px 20px 0 0;max-height:84vh;overflow:hidden;
-  transform:translateY(100%);animation:su .38s cubic-bezier(.32,.72,0,1) forwards;}
+  border-radius:20px 20px 0 0;height:auto;max-height:84vh;overflow:hidden;
+  transform:translateY(100%);animation:su .38s cubic-bezier(.32,.72,0,1) forwards;
+  display:flex;flex-direction:column;}
 @keyframes su{to{transform:translateY(0);}}
-.ph{width:36px;height:4px;background:var(--bd);border-radius:2px;margin:14px auto 0;}
-.pan-main{padding:12px 18px;padding-bottom:max(36px,env(safe-area-inset-bottom));
-  overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;max-height:calc(84vh - 32px);}
-.pan-detail{position:absolute;inset:0;background:var(--bg3);border-radius:20px 20px 0 0;
-  padding:14px 18px;padding-bottom:max(36px,env(safe-area-inset-bottom));
-  overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;
-  transform:translateX(102%);transition:transform .28s cubic-bezier(.32,.72,0,1);}
-.pan-detail.active{transform:translateX(0);}
-.phd{font-size:12px;font-weight:600;color:var(--t1);letter-spacing:.04em;text-transform:uppercase;margin-bottom:4px;margin-top:8px;}
+.ph{width:36px;height:4px;background:var(--bd);border-radius:2px;margin:14px auto 10px;}
+.pan-slider{position:relative;display:flex;width:200%;flex:1;min-height:0;transition:transform .44s cubic-bezier(.4,0,.2,1);}
+.pan-slider.to-detail{transform:translateX(-50%);}
+.pan-main{flex:0 0 50%;display:flex;flex-direction:column;overflow:hidden;padding:0 18px;}
+.pan-main-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;scrollbar-width:none;}
+.pan-main-body::-webkit-scrollbar{display:none;}
+.pan-detail{position:absolute;top:0;left:50%;width:50%;height:100%;
+  display:flex;flex-direction:column;overflow:hidden;padding:0 18px;}
+.pan-det-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;
+  padding-bottom:max(200px,env(safe-area-inset-bottom));scrollbar-width:none;}
+.pan-det-body::-webkit-scrollbar{display:none;}
+.phd{font-size:12px;font-weight:600;color:var(--t1);letter-spacing:.04em;text-transform:uppercase;
+  margin:0 -18px;padding:4px 18px 10px;border-bottom:1px solid var(--bd2);}
 .f-cnt{font-size:11px;font-weight:600;color:var(--accent);margin-left:6px;}
 .f-row{display:flex;align-items:center;justify-content:space-between;width:100%;padding:14px 0;
   background:none;border:none;border-bottom:1px solid var(--bd2);cursor:pointer;font-family:inherit;
@@ -217,16 +222,23 @@ html,body{background:var(--bg);color:var(--t1);
   user-select:none;-webkit-user-select:none;text-align:left;}
 .f-row:active{color:var(--t1);}
 .f-row-r{display:flex;align-items:center;gap:6px;color:var(--t4);flex-shrink:0;}
-.pan-det-hdr{display:flex;align-items:center;gap:6px;padding-bottom:12px;border-bottom:1px solid var(--bd2);margin-bottom:2px;}
-.pan-det-back{background:none;border:none;cursor:pointer;color:var(--t1);display:flex;align-items:center;
-  padding:4px;margin:-4px;-webkit-tap-highlight-color:transparent;flex-shrink:0;}
-.pan-det-title{font-size:12px;font-weight:700;color:var(--t1);letter-spacing:.04em;text-transform:uppercase;}
+.pan-det-hdr{position:relative;flex-shrink:0;background:var(--bg3);
+  margin:0 -18px;padding:0 18px 12px;border-bottom:1px solid var(--bd2);}
+.pan-det-back{position:absolute;left:0;top:12.5px;transform:translateY(-50%);
+  background:none;border:none;cursor:pointer;color:var(--t1);display:flex;align-items:center;
+  padding:4px;-webkit-tap-highlight-color:transparent;
+  opacity:0;transition:opacity .22s ease;}
+.pan-slider.to-detail .pan-det-back{opacity:1;transition:opacity .22s ease .14s;}
+.pan-det-title{display:block;padding-left:14px;font-size:12px;font-weight:700;color:var(--t1);letter-spacing:.04em;text-transform:uppercase;margin-top:4px;
+  opacity:0;transition:opacity .22s ease;}
+.pan-slider.to-detail .pan-det-title{opacity:1;transition:opacity .22s ease .14s;}
+.pan-det-foot{flex-shrink:0;height:max(60px,env(safe-area-inset-bottom));background:var(--bg3);}
 .f-list-item{display:flex;align-items:center;justify-content:space-between;width:100%;padding:14px 0;
   background:none;border:none;border-bottom:1px solid var(--bd2);cursor:pointer;font-family:inherit;
   font-size:13px;font-weight:500;color:var(--t2);-webkit-tap-highlight-color:transparent;
   user-select:none;-webkit-user-select:none;text-align:left;}
 .f-list-item.on{color:var(--accent);font-weight:600;}
-.pfoot{display:flex;gap:10px;margin-top:14px;padding-top:14px;border-top:1px solid var(--bd2);}
+.pfoot{flex-shrink:0;display:flex;gap:10px;margin-top:14px;padding-top:14px;padding-bottom:max(36px,env(safe-area-inset-bottom));}
 .brst{flex:1;padding:14px;background:var(--bg2);border:1px solid var(--bd);color:var(--t2);
   font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;border-radius:12px;
   font-family:inherit;-webkit-tap-highlight-color:transparent;}
@@ -247,6 +259,7 @@ html,body{background:var(--bg);color:var(--t1);
 @media(max-width:768px){.svmt{padding-bottom:40%;}}
 .svmt svg{stroke:var(--bd);}
 .svmt-t{font-size:13px;color:var(--t4);font-weight:500;}
+.cv-empty{position:absolute;inset:0;pointer-events:none;animation:pi .28s ease forwards;opacity:0;}
 .sv-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,140px));
   gap:12px;justify-content:center;}
 .svi{position:relative;cursor:pointer;border-radius:4px;overflow:hidden;background:var(--card);
@@ -288,7 +301,8 @@ html,body{background:var(--bg);color:var(--t1);
   background:linear-gradient(140deg,var(--bg2),var(--card2));}
 .mscroll{position:fixed;left:0;right:0;bottom:0;z-index:405;
   overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;
-  padding-bottom:max(40px,env(safe-area-inset-bottom));}
+  padding-bottom:max(40px,env(safe-area-inset-bottom));scrollbar-width:none;}
+.mscroll::-webkit-scrollbar{display:none;}
 .mscroll-inner{max-width:520px;margin:0 auto;padding:24px 22px 30px;}
 .minfo{opacity:0;transition:opacity .4s ease .25s;color:var(--t1);}
 .minfo.on{opacity:1;}
@@ -500,7 +514,254 @@ function MCard({ film, slot, style }) {
 /* ── Filter Panel ────────────────────────────────────────────────────────── */
 function FilterPanel({ filters, onApply, onClose, showSort = false }) {
   const [loc, setLoc] = useState(filters);
-  const [active, setActive] = useState(null); // null | 'sort'|'decade'|'genre'|'language'|'rating'
+  const [active, setActive] = useState(null); // what content to show (kept during exit animation)
+  const [panelOpen, setPanelOpen] = useState(false); // controls .to-detail CSS class
+  const sliderRef = useRef(null);
+  const bodyRef = useRef(null);
+  const panelOpenRef = useRef(false);
+  const swipeRef = useRef({ tracking: false, startX: 0, startY: 0, dx: 0, isHoriz: null, lastX: 0, lastT: 0, vel: 0 });
+  const swipeClearRef = useRef(null);
+  const goBackRef = useRef(null);
+  const panRef = useRef(null);
+  const pbdRef = useRef(null);
+  const closeClearRef = useRef(null);
+  const closeRef = useRef(null);
+  const expandedRef = useRef(false);
+  const naturalHeightRef = useRef(0);
+
+  function closePanel() {
+    const pan = panRef.current;
+    const pbd = pbdRef.current;
+    clearTimeout(closeClearRef.current);
+    if (pan) {
+      const m = getComputedStyle(pan).transform;
+      pan.style.animation = 'none';
+      pan.style.transition = 'none';
+      pan.style.transform = m === 'none' ? 'translateY(0)' : m;
+      getComputedStyle(pan).transform;
+      pan.style.transition = 'transform .38s cubic-bezier(.32,.72,0,1)';
+      pan.style.transform = 'translateY(110%)';
+    }
+    if (pbd) {
+      pbd.style.animation = 'none';
+      pbd.style.transition = 'opacity .32s ease';
+      pbd.style.opacity = '0';
+    }
+    closeClearRef.current = setTimeout(onClose, 400);
+  }
+  closeRef.current = closePanel;
+
+  function goBack() {
+    const slider = sliderRef.current;
+    clearTimeout(swipeClearRef.current);
+    if (slider) {
+      const m = getComputedStyle(slider).transform;
+      slider.style.transition = 'none';
+      slider.style.transform = m;
+      getComputedStyle(slider).transform; // force reflow
+      slider.style.transition = 'transform .44s cubic-bezier(.4,0,.2,1)';
+      slider.style.transform = 'translateX(0)';
+    }
+    setPanelOpen(false); // removes .to-detail → CSS fade-out triggers; content stays
+    swipeClearRef.current = setTimeout(() => {
+      if (sliderRef.current) {
+        sliderRef.current.style.transition = '';
+        sliderRef.current.style.transform = '';
+      }
+      setActive(null); // clear content only after animation ends
+    }, 440);
+  }
+  goBackRef.current = goBack;
+
+  useEffect(() => { panelOpenRef.current = panelOpen; }, [panelOpen]);
+  useEffect(() => { if (active && bodyRef.current) bodyRef.current.scrollTop = 0; }, [active]);
+
+  useEffect(() => {
+    const slider = sliderRef.current;
+    if (!slider) return;
+    function onStart(e) {
+      if (!panelOpenRef.current) return;
+      clearTimeout(swipeClearRef.current);
+      const t = e.touches[0];
+      swipeRef.current = { tracking: true, startX: t.clientX, startY: t.clientY, dx: 0, isHoriz: null, lastX: t.clientX, lastT: Date.now(), vel: 0 };
+    }
+    function onMove(e) {
+      const sw = swipeRef.current;
+      if (!sw.tracking) return;
+      const t = e.touches[0];
+      const dx = t.clientX - sw.startX;
+      const dy = t.clientY - sw.startY;
+      if (sw.isHoriz === null) {
+        if (Math.abs(dx) > 6 || Math.abs(dy) > 6) {
+          sw.isHoriz = Math.abs(dx) > Math.abs(dy) && dx > 0;
+          if (!sw.isHoriz) { sw.tracking = false; return; }
+        }
+        return;
+      }
+      if (e.cancelable) e.preventDefault();
+      const now = Date.now();
+      sw.vel = (t.clientX - sw.lastX) / Math.max(1, now - sw.lastT);
+      sw.lastX = t.clientX; sw.lastT = now;
+      sw.dx = Math.max(0, dx);
+      slider.style.transition = 'none';
+      slider.style.transform = `translateX(calc(-50% + ${sw.dx}px))`;
+    }
+    function onEnd() {
+      const sw = swipeRef.current;
+      if (!sw.tracking || !sw.isHoriz) { sw.tracking = false; return; }
+      sw.tracking = false;
+      if (sw.dx > 80 || sw.vel > 0.4) {
+        goBackRef.current?.();
+      } else {
+        slider.style.transition = '';
+        getComputedStyle(slider).transform;
+        slider.style.transform = '';
+      }
+    }
+    slider.addEventListener('touchstart', onStart, { passive: true });
+    slider.addEventListener('touchmove', onMove, { passive: false });
+    slider.addEventListener('touchend', onEnd, { passive: true });
+    slider.addEventListener('touchcancel', onEnd, { passive: true });
+    return () => {
+      slider.removeEventListener('touchstart', onStart);
+      slider.removeEventListener('touchmove', onMove);
+      slider.removeEventListener('touchend', onEnd);
+      slider.removeEventListener('touchcancel', onEnd);
+    };
+  }, []);
+
+  useEffect(() => {
+    const pan = panRef.current;
+    if (!pan) return;
+    naturalHeightRef.current = pan.getBoundingClientRect().height;
+    pan.style.height = naturalHeightRef.current + 'px'; // keep definite height so height:100% chain works in pan-detail
+    const sw = { tracking: false, startY: 0, dy: 0, vel: 0, lastY: 0, lastT: 0, dir: null };
+
+    function onStart(e) {
+      if (e.target.closest('.pan-det-body')) return; // let list scroll handle it
+      clearTimeout(closeClearRef.current);
+      // Freeze current position as inline style BEFORE removing animation.
+      // CSS class has transform:translateY(100%); removing the animation's forwards
+      // fill without setting an inline transform causes the panel to jump off screen.
+      const m = getComputedStyle(pan).transform;
+      pan.style.animation = 'none';
+      pan.style.transition = 'none';
+      pan.style.transform = m === 'none' ? 'translateY(0)' : m;
+      sw.tracking = true;
+      sw.startY = e.touches[0].clientY;
+      sw.dy = 0; sw.vel = 0; sw.dir = null;
+      sw.lastY = sw.startY; sw.lastT = Date.now();
+    }
+    function onMove(e) {
+      if (!sw.tracking) return;
+      const rawDy = e.touches[0].clientY - sw.startY;
+
+      if (sw.dir === null) {
+        if (Math.abs(rawDy) < 8) return;
+        sw.dir = rawDy < 0 ? 'up' : 'down';
+        if (sw.dir === 'up' && expandedRef.current) { sw.tracking = false; return; }
+        if (sw.dir === 'up') {
+          pan.style.maxHeight = window.innerHeight + 'px';
+          pan.style.height = naturalHeightRef.current + 'px';
+          getComputedStyle(pan).height;
+        } else if (!expandedRef.current) {
+          getComputedStyle(pan).transform;
+        }
+      }
+
+      const now = Date.now();
+      sw.vel = (e.touches[0].clientY - sw.lastY) / Math.max(1, now - sw.lastT);
+      sw.lastY = e.touches[0].clientY; sw.lastT = now;
+      sw.dy = rawDy;
+      if (e.cancelable) e.preventDefault();
+
+      if (sw.dir === 'down' && !expandedRef.current) {
+        pan.style.transform = `translateY(${Math.max(0, rawDy)}px)`;
+      } else if (sw.dir === 'up') {
+        pan.style.height = Math.max(naturalHeightRef.current, Math.min(window.innerHeight, naturalHeightRef.current - rawDy)) + 'px';
+      } else if (sw.dir === 'down' && expandedRef.current) {
+        const collapsePoint = window.innerHeight - naturalHeightRef.current;
+        if (rawDy <= collapsePoint) {
+          pan.style.height = (window.innerHeight - rawDy) + 'px';
+          pan.style.transform = 'translateY(0)';
+        } else {
+          pan.style.height = naturalHeightRef.current + 'px';
+          pan.style.transform = `translateY(${rawDy - collapsePoint}px)`;
+        }
+      }
+    }
+    function onEnd() {
+      if (!sw.tracking) return;
+      sw.tracking = false;
+      if (!sw.dir) return;
+
+      if (sw.dir === 'down' && !expandedRef.current) {
+        if (sw.dy > 60 || sw.vel > 0.4) {
+          closeRef.current?.();
+        } else {
+          pan.style.transition = 'transform .32s cubic-bezier(.32,.72,0,1)';
+          pan.style.transform = 'translateY(0)';
+          closeClearRef.current = setTimeout(() => {
+            if (panRef.current) panRef.current.style.transition = '';
+            // keep inline transform:translateY(0) to suppress CSS class translateY(100%)
+          }, 320);
+        }
+      } else if (sw.dir === 'up') {
+        if (-sw.dy > 50 || sw.vel < -0.4) {
+          expandedRef.current = true;
+          getComputedStyle(pan).height;
+          pan.style.transition = 'height .38s cubic-bezier(.32,.72,0,1), border-radius .38s';
+          pan.style.height = window.innerHeight + 'px';
+          pan.style.borderRadius = '0';
+          closeClearRef.current = setTimeout(() => {
+            if (panRef.current) panRef.current.style.transition = '';
+          }, 400);
+        } else {
+          pan.style.transition = 'height .32s cubic-bezier(.32,.72,0,1)';
+          pan.style.height = naturalHeightRef.current + 'px';
+          closeClearRef.current = setTimeout(() => {
+            if (panRef.current) { panRef.current.style.maxHeight = ''; panRef.current.style.height = naturalHeightRef.current + 'px'; panRef.current.style.transition = ''; }
+          }, 320);
+        }
+      } else if (sw.dir === 'down' && expandedRef.current) {
+        const collapsePoint = window.innerHeight - naturalHeightRef.current;
+        if (sw.vel > 0.9 || sw.dy > collapsePoint + 80) {
+          expandedRef.current = false;
+          closeRef.current?.();
+        } else if (sw.dy > 80 || sw.vel > 0.3) {
+          expandedRef.current = false;
+          getComputedStyle(pan).height;
+          pan.style.transition = 'height .38s cubic-bezier(.32,.72,0,1), transform .38s cubic-bezier(.32,.72,0,1), border-radius .38s';
+          pan.style.height = naturalHeightRef.current + 'px';
+          pan.style.transform = 'translateY(0)';
+          pan.style.borderRadius = '';
+          closeClearRef.current = setTimeout(() => {
+            if (panRef.current) { panRef.current.style.maxHeight = ''; panRef.current.style.height = naturalHeightRef.current + 'px'; panRef.current.style.transition = ''; panRef.current.style.borderRadius = ''; }
+          }, 400);
+        } else {
+          getComputedStyle(pan).height;
+          pan.style.transition = 'height .32s cubic-bezier(.32,.72,0,1), transform .32s cubic-bezier(.32,.72,0,1), border-radius .32s';
+          pan.style.height = window.innerHeight + 'px';
+          pan.style.transform = 'translateY(0)';
+          pan.style.borderRadius = '0';
+          closeClearRef.current = setTimeout(() => {
+            if (panRef.current) panRef.current.style.transition = '';
+          }, 320);
+        }
+      }
+    }
+    pan.addEventListener('touchstart', onStart, { passive: true });
+    pan.addEventListener('touchmove', onMove, { passive: false });
+    pan.addEventListener('touchend', onEnd, { passive: true });
+    pan.addEventListener('touchcancel', onEnd, { passive: true });
+    return () => {
+      pan.removeEventListener('touchstart', onStart);
+      pan.removeEventListener('touchmove', onMove);
+      pan.removeEventListener('touchend', onEnd);
+      pan.removeEventListener('touchcancel', onEnd);
+    };
+  }, []);
+
   const tog = (k, v) => setLoc(p => {
     const a = p[k] || [];
     return { ...p, [k]: a.includes(v) ? a.filter(x => x !== v) : [...a, v] };
@@ -529,7 +790,7 @@ function FilterPanel({ filters, onApply, onClose, showSort = false }) {
     { k: 'decade',   l: 'Decade',     badge: () => (loc.decade   || []).length ? `${loc.decade.length}`   : null },
     { k: 'genre',    l: 'Genre',      badge: () => (loc.genre    || []).length ? `${loc.genre.length}`    : null },
     { k: 'language', l: 'Language',   badge: () => (loc.language || []).length ? `${loc.language.length}` : null },
-    { k: 'rating',   l: 'Min Rating', badge: () => loc.minRating !== 0 ? (loc.minRating < 0 ? 'All' : `${loc.minRating}+`) : null },
+    { k: 'rating',   l: 'Rating',     badge: () => loc.minRating !== 0 ? (loc.minRating < 0 ? 'All' : `${loc.minRating}+`) : null },
   ];
   const activeLabel = SECTIONS.find(s => s.k === active)?.l ?? '';
 
@@ -559,35 +820,40 @@ function FilterPanel({ filters, onApply, onClose, showSort = false }) {
   }
 
   return (<>
-    <div className="pbd" onClick={onClose} />
-    <div className="pan">
+    <div ref={pbdRef} className="pbd" onClick={() => closeRef.current?.()} />
+    <div ref={panRef} className="pan">
       <div className="ph" />
-      <div className="pan-main">
-        <div className="phd">Filters</div>
-        {SECTIONS.map(({ k, l, badge }) => {
-          const b = badge();
-          return (
-            <button key={k} className="f-row" onClick={() => setActive(k)}>
-              <span>{l}{b && <span className="f-cnt">{b}</span>}</span>
-              <span className="f-row-r">{chevR}</span>
+      <div ref={sliderRef} className={`pan-slider${panelOpen ? ' to-detail' : ''}`}>
+        <div className="pan-main">
+          <div className="phd">Filters</div>
+          <div className="pan-main-body">
+            {SECTIONS.map(({ k, l, badge }) => {
+              const b = badge();
+              return (
+                <button key={k} className="f-row" onClick={() => { setActive(k); setPanelOpen(true); }}>
+                  <span>{l}{b && <span className="f-cnt">{b}</span>}</span>
+                  <span className="f-row-r">{chevR}</span>
+                </button>
+              );
+            })}
+          </div>
+          <div className="pfoot">
+            <button className="brst" onClick={reset}>Reset</button>
+            <button className="bapl" onClick={() => { onApply(loc); onClose(); }}>Apply</button>
+          </div>
+        </div>
+        <div className="pan-detail">
+          <div className="pan-det-hdr">
+            <button className="pan-det-back" onClick={() => goBackRef.current?.()}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                <polyline points="15 18 9 12 15 6" />
+              </svg>
             </button>
-          );
-        })}
-        <div className="pfoot">
-          <button className="brst" onClick={reset}>Reset</button>
-          <button className="bapl" onClick={() => { onApply(loc); onClose(); }}>Apply</button>
+            <span className="pan-det-title">{activeLabel}</span>
+          </div>
+          <div ref={bodyRef} className="pan-det-body">{renderItems()}</div>
+          <div className="pan-det-foot" />
         </div>
-      </div>
-      <div className={`pan-detail${active ? ' active' : ''}`}>
-        <div className="pan-det-hdr">
-          <button className="pan-det-back" onClick={() => setActive(null)}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-              <polyline points="15 18 9 12 15 6" />
-            </svg>
-          </button>
-          <span className="pan-det-title">{activeLabel}</span>
-        </div>
-        {renderItems()}
       </div>
     </div>
   </>);
@@ -944,13 +1210,7 @@ export default function CineCanvas() {
   async function refreshFilms(criteria = filtersRef.current) {
     const pool = curatedRef.current;
     if (!pool.length) return;
-    let picked = sampleMovies(criteria, pool);
-    if (!picked.length && criteria.language.length) {
-      picked = sampleMovies({ ...criteria, language: [] }, pool);
-    }
-    if (!picked.length) {
-      picked = sampleMovies({ decade: [], genre: [], language: [], minRating: 0 }, pool);
-    }
+    const picked = sampleMovies(criteria, pool);
     const token = {};
     refreshTokenRef.current = token;
     await Promise.race([
@@ -1005,7 +1265,7 @@ export default function CineCanvas() {
     let x, y;
     if (isMobile) {
       x = vw / 2 - (pitchX + (4 * CARD_W + 3 * GAP) / 2) * s;
-      y = vh / 2 - (pitchY / 2) * s;
+      y = vh / 2 - (pitchY / 2 + ((COLS_PER_TILE - 1) * (CARD_H + GAP) / COLS_PER_TILE + CARD_H) / 2) * s;
       while (y > 0) y -= py; while (y < -py) y += py;
     } else {
       const totalW = TILES_X * pitchX * s;
@@ -1029,8 +1289,8 @@ export default function CineCanvas() {
       const tpy = pitchY * targetS;
       let tx, ty;
       if (isMobile) {
-        tx = vw / 2 - (pitchX + (4 * CARD_W + 3 * GAP) / 2) * targetS;
-        ty = vh / 2 - (pitchY / 2) * targetS;
+        tx = vw / 2 - (2 * (CARD_W + GAP) + CARD_W / 2) * targetS;
+        ty = vh / 2 - (pitchY / 2 + ((COLS_PER_TILE - 1) * (CARD_H + GAP) / COLS_PER_TILE + CARD_H) / 2) * targetS;
         while (ty > 0) ty -= tpy; while (ty < -tpy) ty += tpy;
       } else {
         const tpx = pitchX * targetS;
@@ -1059,8 +1319,8 @@ export default function CineCanvas() {
     const tpy = pitchY * targetS;
     let tx, ty;
     if (isMobile) {
-      tx = vw / 2 - (pitchX + (4 * CARD_W + 3 * GAP) / 2) * targetS;
-      ty = vh / 2 - (pitchY / 2) * targetS;
+      tx = vw / 2 - (2 * (CARD_W + GAP) + CARD_W / 2) * targetS;
+      ty = vh / 2 - (pitchY / 2 + ((COLS_PER_TILE - 1) * (CARD_H + GAP) / COLS_PER_TILE + CARD_H) / 2) * targetS;
       while (ty > 0) ty -= tpy; while (ty < -tpy) ty += tpy;
     } else {
       const tpx = pitchX * targetS;
@@ -1097,8 +1357,8 @@ export default function CineCanvas() {
       const tpy = pitchY * targetS;
       let tx, ty;
       if (isMobile) {
-        tx = vw / 2 - (pitchX + (4 * CARD_W + 3 * GAP) / 2) * targetS;
-        ty = vh / 2 - (pitchY / 2) * targetS;
+        tx = vw / 2 - (2 * (CARD_W + GAP) + CARD_W / 2) * targetS;
+        ty = vh / 2 - (pitchY / 2 + ((COLS_PER_TILE - 1) * (CARD_H + GAP) / COLS_PER_TILE + CARD_H) / 2) * targetS;
         while (ty > 0) ty -= tpy; while (ty < -tpy) ty += tpy;
       } else {
         const tpx = pitchX * targetS;
@@ -1150,8 +1410,8 @@ export default function CineCanvas() {
       const tpy = pitchY * targetS;
       let tx, ty;
       if (isMobile) {
-        tx = vw / 2 - (pitchX + (4 * CARD_W + 3 * GAP) / 2) * targetS;
-        ty = vh / 2 - (pitchY / 2) * targetS;
+        tx = vw / 2 - (2 * (CARD_W + GAP) + CARD_W / 2) * targetS;
+        ty = vh / 2 - (pitchY / 2 + ((COLS_PER_TILE - 1) * (CARD_H + GAP) / COLS_PER_TILE + CARD_H) / 2) * targetS;
         while (ty > 0) ty -= tpy; while (ty < -tpy) ty += tpy;
       } else {
         const tpx = pitchX * targetS;
@@ -1563,6 +1823,23 @@ export default function CineCanvas() {
             );
           })}
         </div>
+        {!loadingFilms && films.length === 0 && (
+          <div className="cv-empty" style={SAVED_PAGE_STYLE}>
+            <div className="svmt">
+              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--bd)" strokeWidth="1.2">
+                <rect x="2" y="2" width="20" height="20" rx="2" />
+                <line x1="7" y1="2" x2="7" y2="22" />
+                <line x1="17" y1="2" x2="17" y2="22" />
+                <line x1="2" y1="12" x2="22" y2="12" />
+                <line x1="2" y1="7" x2="7" y2="7" />
+                <line x1="17" y1="7" x2="22" y2="7" />
+                <line x1="2" y1="17" x2="7" y2="17" />
+                <line x1="17" y1="17" x2="22" y2="17" />
+              </svg>
+              <span className="svmt-t">No matching films</span>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Saved page */}
