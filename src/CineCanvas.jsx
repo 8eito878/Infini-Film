@@ -235,7 +235,7 @@ html,body{background:var(--bg);color:var(--t1);
 .svi{position:relative;cursor:pointer;border-radius:4px;overflow:hidden;background:var(--card);
   width:100%;aspect-ratio:2/3;height:auto;-webkit-tap-highlight-color:transparent;
   box-shadow:0 0 0 1px rgba(128,128,120,.12);}
-.svi img{width:100%;height:100%;object-fit:cover;display:block;}
+.svi img{width:100%;height:100%;object-fit:cover;display:block;user-select:none;-webkit-user-select:none;-webkit-user-drag:none;pointer-events:none;}
 .svi-fb{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;
   justify-content:center;font-size:9px;color:var(--tc);text-align:center;padding:6px;gap:3px;font-weight:600;
   background:linear-gradient(140deg,var(--bg2),var(--card2));}
