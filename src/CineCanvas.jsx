@@ -223,6 +223,7 @@ html,body{background:var(--bg);color:var(--t1);
 /* Saved page */
 .saved-page{position:absolute;inset:0;z-index:50;background:var(--bg);
   overflow-y:auto;-webkit-overflow-scrolling:touch;
+  user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;
   padding-bottom:max(100px,calc(env(safe-area-inset-bottom)+100px));
   padding-left:12px;padding-right:12px;
   animation:pi .28s ease forwards;opacity:0;}
