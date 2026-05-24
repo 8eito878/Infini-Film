@@ -1434,6 +1434,8 @@ export default function CineCanvas() {
     const slot = SLOT_POSITIONS[slotIdx];
     const film = films[slot.fi]; if (!film) return;
     const cardEl = document.querySelector(`[data-slot="${slotIdx}"]`);
+    // Reset focus so touchend cannot open the modal
+    focusedRef.current = null;
     // Already saved → shake and return
     if (savedSet.has(film.id)) {
       navigator.vibrate?.([ 10, 60, 10 ]);
