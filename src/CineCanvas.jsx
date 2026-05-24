@@ -303,6 +303,7 @@ html,body{background:var(--bg);color:var(--t1);
   font-size:11px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;
   font-family:inherit;-webkit-tap-highlight-color:transparent;transition:color .15s,border-color .15s;}
 .cpbtn.ok{color:var(--accent);border-color:var(--accent);}
+@media(min-width:769px){.cpbtn{display:none;}}
 
 /* ── Responsive ──────────────────────────────────────────────────────────── */
 @media(max-width:768px){
@@ -633,8 +634,7 @@ function FilmModal({ film, cardRect, isSaved, onToggleSave, onClose, closing, de
   const [copied, setCopied] = useState(false);
 
   function copyLink() {
-    const url = `${window.location.origin}/?film=${film.id}`;
-    navigator.clipboard.writeText(url).then(() => {
+    navigator.clipboard.writeText(window.location.href).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     });
@@ -919,13 +919,19 @@ export default function CineCanvas() {
         const picked = sampleMovies(filtersRef.current, curatedRef.current);
         setFilms(picked);
         setLoadingFilms(false);
-        // Open film from URL ?film=id
-        const urlId = parseInt(new URLSearchParams(window.location.search).get('film'));
-        if (urlId) {
-          const film = curatedRef.current.find(m => m.id === urlId);
-          if (film) {
-            const r = { x: window.innerWidth / 2 - CARD_W / 2, y: window.innerHeight / 2 - CARD_H / 2, w: CARD_W, h: CARD_H };
-            setSelected({ film, cardRect: r });
+        // Open film from URL ?film=title-slug-year
+        const urlFilm = new URLSearchParams(window.location.search).get('film');
+        if (urlFilm) {
+          const m = urlFilm.match(/^(.+)-(\d{4})$/);
+          if (m) {
+            const [, slug, year] = m;
+            const film = curatedRef.current.find(f =>
+              lbSlug(f.title) === slug && f.release_date?.slice(0, 4) === year
+            );
+            if (film) {
+              const r = { x: window.innerWidth / 2 - CARD_W / 2, y: window.innerHeight / 2 - CARD_H / 2, w: CARD_W, h: CARD_H };
+              setSelected({ film, cardRect: r });
+            }
           }
         }
       })
@@ -1234,7 +1240,8 @@ export default function CineCanvas() {
   }
 
   function openModal(film, cardRect) {
-    window.history.pushState(null, '', `?film=${film.id}`);
+    const year = film.release_date?.slice(0, 4) ?? '';
+    window.history.pushState(null, '', `?film=${lbSlug(film.title)}${year ? `-${year}` : ''}`);
     setSelected({ film, cardRect });
   }
 
