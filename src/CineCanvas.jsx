@@ -226,8 +226,8 @@ html,body{background:var(--bg);color:var(--t1);
   margin:0 -18px;padding:0 18px 12px;border-bottom:1px solid var(--bd2);
   cursor:pointer;-webkit-tap-highlight-color:transparent;
   user-select:none;-webkit-user-select:none;
-  transition:opacity .12s;}
-.pan-det-hdr:active{opacity:.45;}
+  transition:opacity .15s ease .1s;}
+.pan-det-hdr:active{opacity:.45;transition:opacity .05s ease;}
 .pan-det-back{position:absolute;left:0;top:12.5px;transform:translateY(-50%);
   color:var(--t1);display:flex;align-items:center;padding:4px;
   opacity:0;transition:opacity .22s ease;}
