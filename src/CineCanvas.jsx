@@ -167,7 +167,8 @@ html,body{background:var(--bg);color:var(--t1);
   transition:max-width .3s cubic-bezier(.4,0,.2,1),opacity .18s ease;}
 .hp-btn{display:flex;align-items:center;gap:5px;padding:0 14px;height:100%;background:none;border:none;
   cursor:pointer;color:var(--t2);font-size:12px;font-weight:500;font-family:inherit;
-  -webkit-tap-highlight-color:transparent;white-space:nowrap;transition:color .15s;}
+  -webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;user-select:none;-webkit-user-select:none;
+  white-space:nowrap;transition:color .15s;}
 .hp-btn:hover{color:var(--t1);}
 .hp-btn svg{flex-shrink:0;}
 .hp-btn:disabled{opacity:.5;cursor:default;}
@@ -258,7 +259,7 @@ html,body{background:var(--bg);color:var(--t1);
 .mclose{position:fixed;top:max(14px,env(safe-area-inset-top));right:14px;z-index:420;
   background:var(--surface);border:1px solid var(--bd);border-radius:50%;
   width:38px;height:38px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--t1);
-  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);-webkit-tap-highlight-color:transparent;
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;user-select:none;-webkit-user-select:none;
   opacity:0;transition:opacity .25s ease .1s;}
 .mclose.on{opacity:1;}
 .mposter{position:fixed;z-index:410;overflow:hidden;background:var(--card);
