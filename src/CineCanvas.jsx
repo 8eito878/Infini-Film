@@ -200,7 +200,7 @@ html,body{background:var(--bg);color:var(--t1);
 .f-sec{border-bottom:1px solid var(--bd2);}
 .f-hdr{display:flex;align-items:center;justify-content:space-between;width:100%;padding:13px 0;
   background:none;border:none;cursor:pointer;font-family:inherit;font-size:13px;font-weight:600;color:var(--t2);
-  -webkit-tap-highlight-color:transparent;}
+  -webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;user-select:none;-webkit-user-select:none;}
 .f-hdr:hover{color:var(--t1);}
 .f-cnt{font-size:11px;font-weight:600;color:var(--accent);margin-left:6px;}
 .f-chev{color:var(--t4);transition:transform .2s;display:flex;}
