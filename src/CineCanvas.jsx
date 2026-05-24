@@ -570,7 +570,8 @@ function SavedPage({ savedFilms, onRemove, onSelect }) {
   const [editMode, setEditMode] = useState(false);
   const bgTimerRef = useRef(null);
 
-  function handleBgTouchStart() {
+  function handleBgTouchStart(e) {
+    if (e.target.closest('.svx')) return;
     if (bgTimerRef.current) return;
     bgTimerRef.current = setTimeout(() => {
       bgTimerRef.current = null;
@@ -594,8 +595,8 @@ function SavedPage({ savedFilms, onRemove, onSelect }) {
   );
   return (
     <div className="saved-page" style={SAVED_PAGE_STYLE} onClick={() => setEditMode(false)}
-      onTouchStart={handleBgTouchStart} onTouchEnd={handleBgTouchEnd} onTouchCancel={handleBgTouchEnd}>
-      <div className="sv-grid" onClick={e => e.stopPropagation()}>
+      onTouchStartCapture={handleBgTouchStart} onTouchEndCapture={handleBgTouchEnd} onTouchCancelCapture={handleBgTouchEnd}>
+      <div className="sv-grid">
         {savedFilms.map(f => (
           <SvItem key={f.id} film={f} onRemove={onRemove} onSelect={onSelect}
             editMode={editMode} onEnterEdit={() => setEditMode(true)} onExitEdit={() => setEditMode(false)} />
@@ -625,12 +626,14 @@ function SvItem({ film, onRemove, onSelect, editMode, onEnterEdit, onExitEdit })
     const r = divRef.current?.getBoundingClientRect();
     onSelect(film, r ? { x: r.left, y: r.top, w: r.width, h: r.height } : null);
   }
-  function handleTouchStart(e) {
-    e.stopPropagation();
+  function handleTouchStart() {
     longPressedRef.current = false;
-    timerRef.current = setTimeout(() => { longPressedRef.current = true; onEnterEdit(); }, 500);
+    timerRef.current = setTimeout(() => {
+      longPressedRef.current = true;
+      if (!editMode) onEnterEdit();
+    }, 500);
   }
-  function handleTouchEnd(e) { e.stopPropagation(); clearTimeout(timerRef.current); }
+  function handleTouchEnd() { clearTimeout(timerRef.current); }
 
   return (
     <div ref={divRef}
