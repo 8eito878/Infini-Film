@@ -570,7 +570,7 @@ function SavedPage({ savedFilms, onRemove, onSelect }) {
   const [editMode, setEditMode] = useState(false);
   const bgTimerRef = useRef(null);
   function handleBgTouchStart(e) {
-    if (e.target.closest('.sv-grid')) return;
+    if (e.target.closest('.svi')) return;
     bgTimerRef.current = setTimeout(() => { setEditMode(v => !v); }, 500);
   }
   function handleBgTouchEnd() { clearTimeout(bgTimerRef.current); }
