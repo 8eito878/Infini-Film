@@ -1651,7 +1651,7 @@ export default function CineCanvas() {
           </button>
           <button
             className={`nb${page === "saved" ? " on" : ""}`}
-            onClick={() => { setPage(p => p === "saved" ? "canvas" : "saved"); setShowFilter(false); }}>
+            onClick={() => { if (page !== "saved") { setPage("saved"); setShowFilter(false); } }}>
             {page === "saved" ? (
               <svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor">
                 <path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z" />
