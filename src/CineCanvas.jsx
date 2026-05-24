@@ -298,6 +298,11 @@ html,body{background:var(--bg);color:var(--t1);
   background:var(--accent);border:none;border-radius:14px;color:var(--accent-fg);
   font-size:11px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;text-decoration:none;
   font-family:inherit;-webkit-tap-highlight-color:transparent;}
+.cpbtn{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:14px;
+  background:var(--bg3);border:1px solid var(--bd);border-radius:14px;color:var(--t2);
+  font-size:11px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;
+  font-family:inherit;-webkit-tap-highlight-color:transparent;transition:color .15s,border-color .15s;}
+.cpbtn.ok{color:var(--accent);border-color:var(--accent);}
 
 /* ── Responsive ──────────────────────────────────────────────────────────── */
 @media(max-width:768px){
@@ -625,6 +630,15 @@ function SvItem({ film, onRemove, onSelect, editMode, onEnterEdit, onExitEdit })
 function FilmModal({ film, cardRect, isSaved, onToggleSave, onClose, closing, detailsData, detailsLoading }) {
   const [expanded, setExpanded] = useState(false);
   const [pe, setPe] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  function copyLink() {
+    const url = `${window.location.origin}/?film=${film.id}`;
+    navigator.clipboard.writeText(url).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  }
   const posterRef = useRef(null);
   const bgRef = useRef(null);
   const mscrollRef = useRef(null);
@@ -775,6 +789,14 @@ function FilmModal({ film, cardRect, isSaved, onToggleSave, onClose, closing, de
               </svg>
               {isSaved ? "Saved" : "Save"}
             </button>
+            <button className={`cpbtn${copied ? " ok" : ""}`} onClick={copyLink}>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                {copied
+                  ? <polyline points="20 6 9 17 4 12" />
+                  : <><rect x="9" y="9" width="13" height="13" rx="2" /><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" /></>}
+              </svg>
+              {copied ? "Copied" : "Copy"}
+            </button>
             <a className="lbbtn" href={`https://letterboxd.com/film/${lbSlug(film.title)}/`}
               target="_blank" rel="noopener noreferrer">
               <svg width="14" height="14" viewBox="0 0 30 30">
@@ -897,6 +919,15 @@ export default function CineCanvas() {
         const picked = sampleMovies(filtersRef.current, curatedRef.current);
         setFilms(picked);
         setLoadingFilms(false);
+        // Open film from URL ?film=id
+        const urlId = parseInt(new URLSearchParams(window.location.search).get('film'));
+        if (urlId) {
+          const film = curatedRef.current.find(m => m.id === urlId);
+          if (film) {
+            const r = { x: window.innerWidth / 2 - CARD_W / 2, y: window.innerHeight / 2 - CARD_H / 2, w: CARD_W, h: CARD_H };
+            setSelected({ film, cardRect: r });
+          }
+        }
       })
       .catch(err => {
         console.error('[curated]', err);
@@ -1130,7 +1161,7 @@ export default function CineCanvas() {
       const film = films[slot.fi]; if (!film) return;
       const s = scaleRef.current, o = offRef.current;
       const cardRect = { x: slot.x * s + o.x, y: slot.y * s + o.y, w: CARD_W * s, h: CARD_H * s };
-      setSelected({ film, cardRect });
+      openModal(film, cardRect);
     } else {
       focusSlot(slotIdx);
     }
@@ -1202,7 +1233,13 @@ export default function CineCanvas() {
     });
   }
 
+  function openModal(film, cardRect) {
+    window.history.pushState(null, '', `?film=${film.id}`);
+    setSelected({ film, cardRect });
+  }
+
   function closeModal() {
+    window.history.pushState(null, '', window.location.pathname);
     setModalClosing(true);
     setTimeout(() => { setSelected(null); setModalClosing(false); }, 520);
   }
@@ -1364,7 +1401,7 @@ export default function CineCanvas() {
     const slot = SLOT_POSITIONS[slotIdx];
     const film = films[slot.fi]; if (!film) return;
     const s = scaleRef.current, o = offRef.current;
-    setSelected({ film, cardRect: { x: slot.x * s + o.x, y: slot.y * s + o.y, w: CARD_W * s, h: CARD_H * s } });
+    openModal(film, { x: slot.x * s + o.x, y: slot.y * s + o.y, w: CARD_W * s, h: CARD_H * s });
   };
 
   const savedSet = new Set(savedFilms.map(f => f.id));
@@ -1453,7 +1490,7 @@ export default function CineCanvas() {
               y: window.innerHeight / 2 - CARD_H / 2,
               w: CARD_W, h: CARD_H,
             };
-            setSelected({ film: f, cardRect: r });
+            openModal(f, r);
           }}
         />
       )}
