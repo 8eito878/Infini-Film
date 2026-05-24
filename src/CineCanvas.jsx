@@ -198,27 +198,34 @@ html,body{background:var(--bg);color:var(--t1);
 .pbd{position:fixed;inset:0;background:var(--backdrop);z-index:300;animation:fi .2s forwards;opacity:0;}
 @keyframes fi{to{opacity:1;}}
 .pan{position:fixed;bottom:0;left:0;right:0;z-index:301;background:var(--bg3);border-top:1px solid var(--bd2);
-  border-radius:20px 20px 0 0;padding:14px 18px;
-  padding-bottom:max(36px,env(safe-area-inset-bottom));
-  transform:translateY(100%);animation:su .38s cubic-bezier(.32,.72,0,1) forwards;
-  max-height:84vh;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;}
+  border-radius:20px 20px 0 0;max-height:84vh;overflow:hidden;
+  transform:translateY(100%);animation:su .38s cubic-bezier(.32,.72,0,1) forwards;}
 @keyframes su{to{transform:translateY(0);}}
-.ph{width:36px;height:4px;background:var(--bd);border-radius:2px;margin:0 auto 16px;}
-.phd{font-size:12px;font-weight:600;color:var(--t1);letter-spacing:.04em;text-transform:uppercase;margin-bottom:14px;}
-.f-sec{border-bottom:1px solid var(--bd2);}
-.f-hdr{display:flex;align-items:center;justify-content:space-between;width:100%;padding:13px 0;
-  background:none;border:none;cursor:pointer;font-family:inherit;font-size:13px;font-weight:600;color:var(--t2);
-  -webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;user-select:none;-webkit-user-select:none;}
-.f-hdr:hover{color:var(--t1);}
+.ph{width:36px;height:4px;background:var(--bd);border-radius:2px;margin:14px auto 0;}
+.pan-main{padding:12px 18px;padding-bottom:max(36px,env(safe-area-inset-bottom));
+  overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;max-height:calc(84vh - 32px);}
+.pan-detail{position:absolute;inset:0;background:var(--bg3);border-radius:20px 20px 0 0;
+  padding:14px 18px;padding-bottom:max(36px,env(safe-area-inset-bottom));
+  overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;
+  transform:translateX(102%);transition:transform .28s cubic-bezier(.32,.72,0,1);}
+.pan-detail.active{transform:translateX(0);}
+.phd{font-size:12px;font-weight:600;color:var(--t1);letter-spacing:.04em;text-transform:uppercase;margin-bottom:4px;margin-top:8px;}
 .f-cnt{font-size:11px;font-weight:600;color:var(--accent);margin-left:6px;}
-.f-chev{color:var(--t4);transition:transform .2s;display:flex;}
-.f-chev.open{transform:rotate(180deg);}
-.f-chips{display:flex;flex-wrap:wrap;gap:6px;padding:0 0 14px;}
-.chip{font-size:11px;font-weight:500;padding:7px 13px;border-radius:100px;border:1px solid var(--bd);
-  background:transparent;color:var(--t2);cursor:pointer;transition:all .14s;white-space:nowrap;font-family:inherit;
-  -webkit-tap-highlight-color:transparent;}
-.chip.on{border-color:var(--accent);color:var(--accent);background:rgba(128,128,120,.1);}
-.chip:hover:not(.on){border-color:var(--t3);color:var(--t2);}
+.f-row{display:flex;align-items:center;justify-content:space-between;width:100%;padding:14px 0;
+  background:none;border:none;border-bottom:1px solid var(--bd2);cursor:pointer;font-family:inherit;
+  font-size:13px;font-weight:600;color:var(--t2);-webkit-tap-highlight-color:transparent;
+  user-select:none;-webkit-user-select:none;text-align:left;}
+.f-row:active{color:var(--t1);}
+.f-row-r{display:flex;align-items:center;gap:6px;color:var(--t4);flex-shrink:0;}
+.pan-det-hdr{display:flex;align-items:center;gap:6px;padding-bottom:12px;border-bottom:1px solid var(--bd2);margin-bottom:2px;}
+.pan-det-back{background:none;border:none;cursor:pointer;color:var(--t1);display:flex;align-items:center;
+  padding:4px;margin:-4px;-webkit-tap-highlight-color:transparent;flex-shrink:0;}
+.pan-det-title{font-size:12px;font-weight:700;color:var(--t1);letter-spacing:.04em;text-transform:uppercase;}
+.f-list-item{display:flex;align-items:center;justify-content:space-between;width:100%;padding:14px 0;
+  background:none;border:none;border-bottom:1px solid var(--bd2);cursor:pointer;font-family:inherit;
+  font-size:13px;font-weight:500;color:var(--t2);-webkit-tap-highlight-color:transparent;
+  user-select:none;-webkit-user-select:none;text-align:left;}
+.f-list-item.on{color:var(--accent);font-weight:600;}
 .pfoot{display:flex;gap:10px;margin-top:14px;padding-top:14px;border-top:1px solid var(--bd2);}
 .brst{flex:1;padding:14px;background:var(--bg2);border:1px solid var(--bd);color:var(--t2);
   font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;border-radius:12px;
@@ -493,116 +500,94 @@ function MCard({ film, slot, style }) {
 /* ── Filter Panel ────────────────────────────────────────────────────────── */
 function FilterPanel({ filters, onApply, onClose, showSort = false }) {
   const [loc, setLoc] = useState(filters);
-  const [open, setOpen] = useState({});
+  const [active, setActive] = useState(null); // null | 'sort'|'decade'|'genre'|'language'|'rating'
   const tog = (k, v) => setLoc(p => {
     const a = p[k] || [];
     return { ...p, [k]: a.includes(v) ? a.filter(x => x !== v) : [...a, v] };
   });
   const reset = () => setLoc({ decade: [], genre: [], language: [], minRating: 0, sortKey: 'added', sortDir: 'desc' });
-  const chev = (
-    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-      <polyline points="6 9 12 15 18 9" />
+
+  const chevR = (
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+      <polyline points="9 18 15 12 9 6" />
     </svg>
   );
-  const sortArrow = dir => (
-    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+  const check = (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+      <polyline points="20 6 9 17 4 12" />
+    </svg>
+  );
+  const sortArr = dir => (
+    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
       <polyline points={dir === 'desc' ? '6 9 12 15 18 9' : '18 15 12 9 6 15'} />
     </svg>
   );
 
-  const sections = [
-    { k: "decade", l: "Decade", opts: DECADES },
-    { k: "genre",  l: "Genre",  opts: GENRES },
-    { k: "language", l: "Language", opts: LANGUAGES },
+  const SECTIONS = [
+    ...(showSort ? [{ k: 'sort', l: 'Sort',
+      badge: () => `${SORT_OPTS.find(s => s.key === loc.sortKey)?.label ?? 'Date Added'} ${loc.sortDir === 'desc' ? '↓' : '↑'}` }] : []),
+    { k: 'decade',   l: 'Decade',     badge: () => (loc.decade   || []).length ? `${loc.decade.length}`   : null },
+    { k: 'genre',    l: 'Genre',      badge: () => (loc.genre    || []).length ? `${loc.genre.length}`    : null },
+    { k: 'language', l: 'Language',   badge: () => (loc.language || []).length ? `${loc.language.length}` : null },
+    { k: 'rating',   l: 'Min Rating', badge: () => loc.minRating !== 0 ? (loc.minRating < 0 ? 'All' : `${loc.minRating}+`) : null },
   ];
+  const activeLabel = SECTIONS.find(s => s.k === active)?.l ?? '';
+
+  function renderItems() {
+    if (active === 'sort') return SORT_OPTS.map(({ key, label }) => (
+      <button key={key} className={`f-list-item${loc.sortKey === key ? ' on' : ''}`}
+        onClick={() => setLoc(p => ({ ...p, sortKey: key, sortDir: p.sortKey === key ? (p.sortDir === 'desc' ? 'asc' : 'desc') : 'desc' }))}>
+        <span>{label}</span>
+        {loc.sortKey === key && sortArr(loc.sortDir)}
+      </button>
+    ));
+    if (active === 'rating') return RATINGS_OPTS.map(({ l, v }) => (
+      <button key={v} className={`f-list-item${loc.minRating === v ? ' on' : ''}`}
+        onClick={() => setLoc(p => ({ ...p, minRating: p.minRating === v ? 0 : v }))}>
+        <span>{l}</span>
+        {loc.minRating === v && check}
+      </button>
+    ));
+    const opts = active === 'decade' ? DECADES : active === 'genre' ? GENRES : LANGUAGES;
+    return (opts || []).map(o => (
+      <button key={o} className={`f-list-item${(loc[active] || []).includes(o) ? ' on' : ''}`}
+        onClick={() => tog(active, o)}>
+        <span>{o}</span>
+        {(loc[active] || []).includes(o) && check}
+      </button>
+    ));
+  }
 
   return (<>
     <div className="pbd" onClick={onClose} />
     <div className="pan">
       <div className="ph" />
-      <div className="phd">Filters</div>
-
-      {showSort && (
-        <div className="f-sec">
-          <button className="f-hdr" onClick={() => setOpen(o => ({ ...o, sort: !o.sort }))}>
-            <span>
-              Sort
-              <span className="f-cnt">
-                {SORT_OPTS.find(s => s.key === loc.sortKey)?.label ?? 'Date Added'}
-                {' '}{loc.sortDir === 'desc' ? '↓' : '↑'}
-              </span>
-            </span>
-            <span className={`f-chev${open.sort ? " open" : ""}`}>{chev}</span>
-          </button>
-          {open.sort && (
-            <div className="f-chips">
-              {SORT_OPTS.map(({ key, label }) => (
-                <button
-                  key={key}
-                  className={`chip${loc.sortKey === key ? ' on' : ''}`}
-                  style={loc.sortKey === key ? { display: 'inline-flex', alignItems: 'center', gap: '4px' } : {}}
-                  onClick={() => setLoc(p => ({
-                    ...p,
-                    sortKey: key,
-                    sortDir: p.sortKey === key ? (p.sortDir === 'desc' ? 'asc' : 'desc') : 'desc',
-                  }))}
-                >
-                  {label}
-                  {loc.sortKey === key && sortArrow(loc.sortDir)}
-                </button>
-              ))}
-            </div>
-          )}
+      <div className="pan-main">
+        <div className="phd">Filters</div>
+        {SECTIONS.map(({ k, l, badge }) => {
+          const b = badge();
+          return (
+            <button key={k} className="f-row" onClick={() => setActive(k)}>
+              <span>{l}{b && <span className="f-cnt">{b}</span>}</span>
+              <span className="f-row-r">{chevR}</span>
+            </button>
+          );
+        })}
+        <div className="pfoot">
+          <button className="brst" onClick={reset}>Reset</button>
+          <button className="bapl" onClick={() => { onApply(loc); onClose(); }}>Apply</button>
         </div>
-      )}
-
-      {sections.map(({ k, l, opts }) => (
-        <div className="f-sec" key={k}>
-          <button className="f-hdr" onClick={() => setOpen(o => ({ ...o, [k]: !o[k] }))}>
-            <span>
-              {l}
-              {(loc[k] || []).length > 0 && <span className="f-cnt">{loc[k].length}</span>}
-            </span>
-            <span className={`f-chev${open[k] ? " open" : ""}`}>{chev}</span>
-          </button>
-          {open[k] && (
-            <div className="f-chips">
-              {opts.map(o => (
-                <button
-                  key={o}
-                  className={`chip${(loc[k] || []).includes(o) ? " on" : ""}`}
-                  onClick={() => tog(k, o)}
-                >{o}</button>
-              ))}
-            </div>
-          )}
-        </div>
-      ))}
-
-      <div className="f-sec">
-        <button className="f-hdr" onClick={() => setOpen(o => ({ ...o, rating: !o.rating }))}>
-          <span>
-            Min Rating
-            {loc.minRating !== 0 && <span className="f-cnt">{loc.minRating < 0 ? "All" : `${loc.minRating}+`}</span>}
-          </span>
-          <span className={`f-chev${open.rating ? " open" : ""}`}>{chev}</span>
-        </button>
-        {open.rating && (
-          <div className="f-chips">
-            {RATINGS_OPTS.map(({ l, v }) => (
-              <button
-                key={v}
-                className={`chip${loc.minRating === v ? " on" : ""}`}
-                onClick={() => setLoc(p => ({ ...p, minRating: p.minRating === v ? 0 : v }))}
-              >{l}</button>
-            ))}
-          </div>
-        )}
       </div>
-
-      <div className="pfoot">
-        <button className="brst" onClick={reset}>Reset</button>
-        <button className="bapl" onClick={() => { onApply(loc); onClose(); }}>Apply</button>
+      <div className={`pan-detail${active ? ' active' : ''}`}>
+        <div className="pan-det-hdr">
+          <button className="pan-det-back" onClick={() => setActive(null)}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+              <polyline points="15 18 9 12 15 6" />
+            </svg>
+          </button>
+          <span className="pan-det-title">{activeLabel}</span>
+        </div>
+        {renderItems()}
       </div>
     </div>
   </>);
