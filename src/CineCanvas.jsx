@@ -241,7 +241,8 @@ html,body{background:var(--bg);color:var(--t1);
   background:linear-gradient(140deg,var(--bg2),var(--card2));}
 .svx{position:absolute;top:5px;right:5px;background:rgba(0,0,0,.55);border:none;border-radius:50%;
   width:22px;height:22px;display:flex;align-items:center;justify-content:center;cursor:pointer;
-  color:#fff;font-size:12px;-webkit-tap-highlight-color:transparent;opacity:0;transition:opacity .2s;}
+  color:#fff;font-size:12px;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;
+  user-select:none;-webkit-user-select:none;opacity:0;transition:opacity .2s;}
 .svi:hover .svx{opacity:1;}
 .svi.svi-edit .svx{opacity:1;}
 @keyframes svi-out{to{opacity:0;transform:scale(.82);}}
