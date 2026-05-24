@@ -223,10 +223,13 @@ html,body{background:var(--bg);color:var(--t1);
 .f-row:active{color:var(--t1);}
 .f-row-r{display:flex;align-items:center;gap:6px;color:var(--t4);flex-shrink:0;}
 .pan-det-hdr{position:relative;flex-shrink:0;background:var(--bg3);
-  margin:0 -18px;padding:0 18px 12px;border-bottom:1px solid var(--bd2);}
+  margin:0 -18px;padding:0 18px 12px;border-bottom:1px solid var(--bd2);
+  cursor:pointer;-webkit-tap-highlight-color:transparent;
+  user-select:none;-webkit-user-select:none;
+  transition:opacity .12s;}
+.pan-det-hdr:active{opacity:.45;}
 .pan-det-back{position:absolute;left:0;top:12.5px;transform:translateY(-50%);
-  background:none;border:none;cursor:pointer;color:var(--t1);display:flex;align-items:center;
-  padding:4px;-webkit-tap-highlight-color:transparent;
+  color:var(--t1);display:flex;align-items:center;padding:4px;
   opacity:0;transition:opacity .22s ease;}
 .pan-slider.to-detail .pan-det-back{opacity:1;transition:opacity .22s ease .14s;}
 .pan-det-title{display:block;padding-left:14px;font-size:12px;font-weight:700;color:var(--t1);letter-spacing:.04em;text-transform:uppercase;margin-top:4px;
@@ -843,12 +846,12 @@ function FilterPanel({ filters, onApply, onClose, showSort = false }) {
           </div>
         </div>
         <div className="pan-detail">
-          <div className="pan-det-hdr">
-            <button className="pan-det-back" onClick={() => goBackRef.current?.()}>
+          <div className="pan-det-hdr" onClick={() => goBackRef.current?.()} onTouchStart={() => {}}>
+            <div className="pan-det-back">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
                 <polyline points="15 18 9 12 15 6" />
               </svg>
-            </button>
+            </div>
             <span className="pan-det-title">{activeLabel}</span>
           </div>
           <div ref={bodyRef} className="pan-det-body">{renderItems()}</div>
