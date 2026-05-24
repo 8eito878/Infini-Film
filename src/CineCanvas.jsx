@@ -1254,7 +1254,7 @@ export default function CineCanvas() {
     let act = false, moved = false, sx = 0, sy = 0, sox = 0, soy = 0;
     let lx = 0, ly = 0, lt = 0, vx = 0, vy = 0;
     let pinching = false, pStartDist = 0, pStartScale = 1, pinchMaxHit = false;
-    let lpTimer = null;
+    let lpTimer = null, lpFired = false;
     const TAP_THRESH = 8;
 
     const co = e => e.touches
@@ -1307,7 +1307,7 @@ export default function CineCanvas() {
         const c = e.target?.closest('[data-slot]');
         if (c) {
           const slotIdx = parseInt(c.dataset.slot, 10);
-          lpTimer = setTimeout(() => { lpTimer = null; longPressSaveRef.current?.(slotIdx); }, 500);
+          lpTimer = setTimeout(() => { lpTimer = null; lpFired = true; longPressSaveRef.current?.(slotIdx); }, 500);
         }
       }
     };
@@ -1336,10 +1336,13 @@ export default function CineCanvas() {
 
     const onE = e => {
       if (lpTimer) { clearTimeout(lpTimer); lpTimer = null; }
+      const didLongPress = lpFired; lpFired = false;
       if (pinching) { pinching = false; act = false; vp.classList.remove('drag'); return; }
       if (!act) return;
       act = false; vp.classList.remove('drag');
       if (!moved) {
+        if (didLongPress) { /* long-press save fired — skip tap */ }
+        else {
         const t = e.changedTouches?.[0];
         const el = t ? document.elementFromPoint(t.clientX, t.clientY) : e.target;
         const c = el?.closest?.('[data-slot]');
@@ -1347,6 +1350,7 @@ export default function CineCanvas() {
           onCardTap(parseInt(c.dataset.slot, 10));
         } else {
           focusedRef.current = null;
+        }
         }
       } else if (Math.abs(vx) > 0.2 || Math.abs(vy) > 0.2) {
         const go = () => {
