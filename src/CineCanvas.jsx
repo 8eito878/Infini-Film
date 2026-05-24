@@ -568,13 +568,24 @@ const SAVED_PAGE_STYLE = {
 
 function SavedPage({ savedFilms, onRemove, onSelect }) {
   const [editMode, setEditMode] = useState(false);
+  const editModeRef = useRef(false);
+  useEffect(() => { editModeRef.current = editMode; }, [editMode]);
   const bgTimerRef = useRef(null);
+
   function handleBgTouchStart(e) {
-    if (!editMode && e.target.closest('.svi')) return;
     if (e.target.closest('.svx')) return;
-    bgTimerRef.current = setTimeout(() => { setEditMode(v => !v); }, 500);
+    if (!editModeRef.current && e.target.closest('.svi')) return;
+    if (bgTimerRef.current) return; // prevent double-fire when event bubbles
+    bgTimerRef.current = setTimeout(() => {
+      bgTimerRef.current = null;
+      setEditMode(v => !v);
+    }, 500);
   }
-  function handleBgTouchEnd() { clearTimeout(bgTimerRef.current); }
+  function handleBgTouchEnd() {
+    clearTimeout(bgTimerRef.current);
+    bgTimerRef.current = null;
+  }
+
   if (savedFilms.length === 0) return (
     <div className="saved-page" style={SAVED_PAGE_STYLE}>
       <div className="svmt">
@@ -588,7 +599,8 @@ function SavedPage({ savedFilms, onRemove, onSelect }) {
   return (
     <div className="saved-page" style={SAVED_PAGE_STYLE} onClick={() => setEditMode(false)}
       onTouchStart={handleBgTouchStart} onTouchEnd={handleBgTouchEnd} onTouchCancel={handleBgTouchEnd}>
-      <div className="sv-grid" onClick={e => e.stopPropagation()}>
+      <div className="sv-grid" onClick={e => e.stopPropagation()}
+        onTouchStart={handleBgTouchStart} onTouchEnd={handleBgTouchEnd} onTouchCancel={handleBgTouchEnd}>
         {savedFilms.map(f => (
           <SvItem key={f.id} film={f} onRemove={onRemove} onSelect={onSelect}
             editMode={editMode} onEnterEdit={() => setEditMode(true)} onExitEdit={() => setEditMode(false)} />
