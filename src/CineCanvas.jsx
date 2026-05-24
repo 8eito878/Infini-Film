@@ -568,14 +568,10 @@ const SAVED_PAGE_STYLE = {
 
 function SavedPage({ savedFilms, onRemove, onSelect }) {
   const [editMode, setEditMode] = useState(false);
-  const editModeRef = useRef(false);
-  useEffect(() => { editModeRef.current = editMode; }, [editMode]);
   const bgTimerRef = useRef(null);
 
-  function handleBgTouchStart(e) {
-    if (e.target.closest('.svx')) return;
-    if (!editModeRef.current && e.target.closest('.svi')) return;
-    if (bgTimerRef.current) return; // prevent double-fire when event bubbles
+  function handleBgTouchStart() {
+    if (bgTimerRef.current) return;
     bgTimerRef.current = setTimeout(() => {
       bgTimerRef.current = null;
       setEditMode(v => !v);
@@ -599,8 +595,7 @@ function SavedPage({ savedFilms, onRemove, onSelect }) {
   return (
     <div className="saved-page" style={SAVED_PAGE_STYLE} onClick={() => setEditMode(false)}
       onTouchStart={handleBgTouchStart} onTouchEnd={handleBgTouchEnd} onTouchCancel={handleBgTouchEnd}>
-      <div className="sv-grid" onClick={e => e.stopPropagation()}
-        onTouchStart={handleBgTouchStart} onTouchEnd={handleBgTouchEnd} onTouchCancel={handleBgTouchEnd}>
+      <div className="sv-grid" onClick={e => e.stopPropagation()}>
         {savedFilms.map(f => (
           <SvItem key={f.id} film={f} onRemove={onRemove} onSelect={onSelect}
             editMode={editMode} onEnterEdit={() => setEditMode(true)} onExitEdit={() => setEditMode(false)} />
@@ -630,11 +625,12 @@ function SvItem({ film, onRemove, onSelect, editMode, onEnterEdit, onExitEdit })
     const r = divRef.current?.getBoundingClientRect();
     onSelect(film, r ? { x: r.left, y: r.top, w: r.width, h: r.height } : null);
   }
-  function handleTouchStart() {
+  function handleTouchStart(e) {
+    e.stopPropagation();
     longPressedRef.current = false;
     timerRef.current = setTimeout(() => { longPressedRef.current = true; onEnterEdit(); }, 500);
   }
-  function handleTouchEnd() { clearTimeout(timerRef.current); }
+  function handleTouchEnd(e) { e.stopPropagation(); clearTimeout(timerRef.current); }
 
   return (
     <div ref={divRef}
