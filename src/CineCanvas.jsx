@@ -3,7 +3,9 @@ import { useState, useEffect, useLayoutEffect, useRef, useMemo } from "react";
 /* ── TMDB ────────────────────────────────────────────────────────────────── */
 const TMDB_KEY = "16370ad515ac76b8ec2726ca32074643";
 const TMDB_BASE = "https://api.themoviedb.org/3";
-const TMDB_IMG = "https://image.tmdb.org/t/p/w780";
+const TMDB_IMG = typeof window !== 'undefined' && window.innerWidth <= 768
+  ? "https://image.tmdb.org/t/p/w342"
+  : "https://image.tmdb.org/t/p/w780";
 
 /* ── Genre mapping ───────────────────────────────────────────────────────── */
 const GENRE_IDS = {
@@ -110,7 +112,8 @@ const CSS = `
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 html,body{background:var(--bg);color:var(--t1);
   font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Helvetica Neue',system-ui,sans-serif;
-  overflow:hidden;height:100%;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;-webkit-font-smoothing:antialiased;}
+  overflow:hidden;height:100%;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;-webkit-font-smoothing:antialiased;
+  overscroll-behavior:none;}
 .app{position:fixed;inset:0;background:var(--bg);overflow:hidden;}
 .cv{position:absolute;inset:0;overflow:hidden;cursor:grab;touch-action:none;
   -webkit-user-select:none;user-select:none;}
