@@ -52,6 +52,14 @@ const RATINGS_OPTS = [
   { l: "8.5+", v: 8.5 },
 ];
 
+/* ── Sort options ────────────────────────────────────────────────────────── */
+const SORT_OPTS = [
+  { key: 'added',      label: '追加日' },
+  { key: 'year',       label: '公開年' },
+  { key: 'score',      label: 'スコア' },
+  { key: 'popularity', label: '人気'   },
+];
+
 /* ── Layout ──────────────────────────────────────────────────────────────── */
 const CARD_W = 240, CARD_H = 360, GAP = 20;
 const COLS_PER_TILE = 6, ROWS_PER_TILE = 10;
@@ -251,6 +259,16 @@ html,body{background:var(--bg);color:var(--t1);
 .svi-removing{animation:svi-out .28s ease forwards;pointer-events:none;}
 @keyframes svi-wiggle{0%,100%{transform:rotate(-0.7deg)}50%{transform:rotate(0.7deg)}}
 .svi.svi-edit:not(.svi-removing){animation:svi-wiggle .22s ease-in-out infinite;transform-origin:center;}
+
+/* Sort bar */
+.sv-sort{display:flex;gap:6px;padding:6px 0 14px;overflow-x:auto;-webkit-overflow-scrolling:touch;
+  scrollbar-width:none;-webkit-touch-callout:none;}
+.sv-sort::-webkit-scrollbar{display:none;}
+.sv-sort-btn{flex-shrink:0;display:flex;align-items:center;gap:4px;padding:5px 12px;border-radius:16px;
+  border:1px solid var(--bd);background:transparent;color:var(--t3);font-size:12px;font-weight:500;
+  cursor:pointer;-webkit-tap-highlight-color:transparent;font-family:inherit;-webkit-touch-callout:none;
+  user-select:none;-webkit-user-select:none;}
+.sv-sort-btn.on{background:var(--t1);color:var(--bg);border-color:transparent;}
 
 /* Modal */
 .mbg{position:fixed;inset:0;background:var(--overlay);z-index:400;
@@ -568,10 +586,33 @@ const SAVED_PAGE_STYLE = {
 
 function SavedPage({ savedFilms, onRemove, onSelect }) {
   const [editMode, setEditMode] = useState(false);
+  const [sort, setSort] = useState({ key: 'added', dir: 'desc' });
   const bgTimerRef = useRef(null);
 
+  function toggleSort(key) {
+    setSort(s => s.key === key
+      ? { key, dir: s.dir === 'desc' ? 'asc' : 'desc' }
+      : { key, dir: 'desc' });
+  }
+
+  const sortedFilms = useMemo(() => {
+    const { key, dir } = sort;
+    const arr = savedFilms.map((f, i) => ({ ...f, _idx: i }));
+    arr.sort((a, b) => {
+      let av, bv;
+      if      (key === 'added')      { av = a._idx;            bv = b._idx; }
+      else if (key === 'year')       { av = a.release_date ?? ''; bv = b.release_date ?? ''; }
+      else if (key === 'score')      { av = a.vote_average ?? 0; bv = b.vote_average ?? 0; }
+      else                           { av = a.vote_count ?? 0;  bv = b.vote_count ?? 0; }
+      if (av < bv) return dir === 'asc' ? -1 : 1;
+      if (av > bv) return dir === 'asc' ? 1 : -1;
+      return 0;
+    });
+    return arr;
+  }, [savedFilms, sort]);
+
   function handleBgTouchStart(e) {
-    if (e.target.closest('.svx')) return;
+    if (e.target.closest('.svx,.sv-sort')) return;
     if (bgTimerRef.current) return;
     bgTimerRef.current = setTimeout(() => {
       bgTimerRef.current = null;
@@ -582,6 +623,12 @@ function SavedPage({ savedFilms, onRemove, onSelect }) {
     clearTimeout(bgTimerRef.current);
     bgTimerRef.current = null;
   }
+
+  const chev = dir => (
+    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points={dir === 'desc' ? '6 9 12 15 18 9' : '18 15 12 9 6 15'} />
+    </svg>
+  );
 
   if (savedFilms.length === 0) return (
     <div className="saved-page" style={SAVED_PAGE_STYLE}>
@@ -596,8 +643,17 @@ function SavedPage({ savedFilms, onRemove, onSelect }) {
   return (
     <div className="saved-page" style={SAVED_PAGE_STYLE} onClick={() => setEditMode(false)}
       onTouchStartCapture={handleBgTouchStart} onTouchEndCapture={handleBgTouchEnd} onTouchCancelCapture={handleBgTouchEnd}>
+      <div className="sv-sort" onClick={e => e.stopPropagation()}>
+        {SORT_OPTS.map(({ key, label }) => (
+          <button key={key} className={`sv-sort-btn${sort.key === key ? ' on' : ''}`}
+            onClick={() => toggleSort(key)}>
+            {label}
+            {sort.key === key && chev(sort.dir)}
+          </button>
+        ))}
+      </div>
       <div className="sv-grid">
-        {savedFilms.map(f => (
+        {sortedFilms.map(f => (
           <SvItem key={f.id} film={f} onRemove={onRemove} onSelect={onSelect}
             editMode={editMode} onEnterEdit={() => setEditMode(true)} onExitEdit={() => setEditMode(false)} />
         ))}
