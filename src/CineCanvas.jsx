@@ -527,12 +527,10 @@ function FilterPanel({ filters, onApply, onClose, showSort = false }) {
           <button className="f-hdr" onClick={() => setOpen(o => ({ ...o, sort: !o.sort }))}>
             <span>
               Sort
-              {(loc.sortKey !== 'added' || loc.sortDir !== 'desc') && (
-                <span className="f-cnt">
-                  {SORT_OPTS.find(s => s.key === loc.sortKey)?.label ?? 'Date Added'}
-                  {' '}{loc.sortDir === 'desc' ? '↓' : '↑'}
-                </span>
-              )}
+              <span className="f-cnt">
+                {SORT_OPTS.find(s => s.key === loc.sortKey)?.label ?? 'Date Added'}
+                {' '}{loc.sortDir === 'desc' ? '↓' : '↑'}
+              </span>
             </span>
             <span className={`f-chev${open.sort ? " open" : ""}`}>{chev}</span>
           </button>
