@@ -255,14 +255,14 @@ html,body{background:var(--bg);color:var(--t1);
 /* Modal */
 .mbg{position:fixed;inset:0;background:var(--overlay);z-index:400;
   backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
-  opacity:0;transition:opacity .35s ease;pointer-events:none;}
-.mbg.on{opacity:1;pointer-events:auto;}
+  opacity:0;transition:opacity .2s ease;pointer-events:none;}
+.mbg.on{opacity:1;pointer-events:auto;transition:opacity .35s ease;}
 .mclose{position:fixed;top:max(14px,env(safe-area-inset-top));right:14px;z-index:420;
   background:var(--surface);border:1px solid var(--bd);border-radius:50%;
   width:38px;height:38px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--t1);
   backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;user-select:none;-webkit-user-select:none;
-  opacity:0;transition:opacity .25s ease .1s;}
-.mclose.on{opacity:1;}
+  opacity:0;transition:opacity .15s ease 0s;}
+.mclose.on{opacity:1;transition:opacity .25s ease .1s;}
 .mposter{position:fixed;z-index:410;overflow:hidden;background:var(--card);
   box-shadow:0 24px 80px rgba(0,0,0,.5),0 0 0 1px rgba(128,128,120,.1);
   transform-origin:center center;will-change:transform;
@@ -277,6 +277,7 @@ html,body{background:var(--bg);color:var(--t1);
 .mscroll-inner{max-width:520px;margin:0 auto;padding:24px 22px 30px;}
 .minfo{opacity:0;transition:opacity .4s ease .25s;color:var(--t1);}
 .minfo.on{opacity:1;}
+.minfo.closing{transition:opacity .15s ease 0s;}
 .m-genres{display:flex;justify-content:center;flex-wrap:wrap;gap:5px;margin-bottom:12px;}
 .m-gen{font-size:10px;font-weight:600;padding:4px 10px;border:1px solid var(--bd);border-radius:100px;color:var(--t2);letter-spacing:.04em;}
 .m-title{font-size:26px;font-weight:700;line-height:1.12;color:var(--title);margin-bottom:4px;letter-spacing:-.02em;text-align:center;}
@@ -730,7 +731,7 @@ function FilmModal({ film, cardRect, isSaved, onToggleSave, onClose, closing, de
     </div>
     <div ref={mscrollRef} className="mscroll" style={{ top: scrollTop }}>
       <div className="mscroll-inner">
-        <div className={`minfo${expanded ? " on" : ""}`}>
+        <div className={`minfo${expanded ? " on" : ""}${closing ? " closing" : ""}`}>
           {genres.length > 0 && (
             <div className="m-genres">
               {genres.map(g => <span key={g} className="m-gen">{g}</span>)}
