@@ -568,6 +568,12 @@ const SAVED_PAGE_STYLE = {
 
 function SavedPage({ savedFilms, onRemove, onSelect }) {
   const [editMode, setEditMode] = useState(false);
+  const bgTimerRef = useRef(null);
+  function handleBgTouchStart(e) {
+    if (e.target.closest('.sv-grid')) return;
+    bgTimerRef.current = setTimeout(() => { setEditMode(v => !v); }, 500);
+  }
+  function handleBgTouchEnd() { clearTimeout(bgTimerRef.current); }
   if (savedFilms.length === 0) return (
     <div className="saved-page" style={SAVED_PAGE_STYLE}>
       <div className="svmt">
@@ -579,7 +585,8 @@ function SavedPage({ savedFilms, onRemove, onSelect }) {
     </div>
   );
   return (
-    <div className="saved-page" style={SAVED_PAGE_STYLE} onClick={() => setEditMode(false)}>
+    <div className="saved-page" style={SAVED_PAGE_STYLE} onClick={() => setEditMode(false)}
+      onTouchStart={handleBgTouchStart} onTouchEnd={handleBgTouchEnd} onTouchCancel={handleBgTouchEnd}>
       <div className="sv-grid" onClick={e => e.stopPropagation()}>
         {savedFilms.map(f => (
           <SvItem key={f.id} film={f} onRemove={onRemove} onSelect={onSelect}
