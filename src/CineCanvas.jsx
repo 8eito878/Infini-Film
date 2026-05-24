@@ -919,19 +919,16 @@ export default function CineCanvas() {
         const picked = sampleMovies(filtersRef.current, curatedRef.current);
         setFilms(picked);
         setLoadingFilms(false);
-        // Open film from URL ?film=title-slug-year
-        const urlFilm = new URLSearchParams(window.location.search).get('film');
-        if (urlFilm) {
-          const m = urlFilm.match(/^(.+)-(\d{4})$/);
-          if (m) {
-            const [, slug, year] = m;
-            const film = curatedRef.current.find(f =>
-              lbSlug(f.title) === slug && f.release_date?.slice(0, 4) === year
-            );
-            if (film) {
-              const r = { x: window.innerWidth / 2 - CARD_W / 2, y: window.innerHeight / 2 - CARD_H / 2, w: CARD_W, h: CARD_H };
-              setSelected({ film, cardRect: r });
-            }
+        // Open film from URL /film/{slug}/{year}
+        const pathM = window.location.pathname.match(/^\/film\/([^/]+)(?:\/(\d{4}))?/);
+        if (pathM) {
+          const [, slug, year] = pathM;
+          const film = curatedRef.current.find(f =>
+            lbSlug(f.title) === slug && (!year || f.release_date?.slice(0, 4) === year)
+          );
+          if (film) {
+            const r = { x: window.innerWidth / 2 - CARD_W / 2, y: window.innerHeight / 2 - CARD_H / 2, w: CARD_W, h: CARD_H };
+            setSelected({ film, cardRect: r });
           }
         }
       })
@@ -1241,12 +1238,12 @@ export default function CineCanvas() {
 
   function openModal(film, cardRect) {
     const year = film.release_date?.slice(0, 4) ?? '';
-    window.history.pushState(null, '', `?film=${lbSlug(film.title)}${year ? `-${year}` : ''}`);
+    window.history.pushState(null, '', `/film/${lbSlug(film.title)}${year ? `/${year}` : ''}`);
     setSelected({ film, cardRect });
   }
 
   function closeModal() {
-    window.history.pushState(null, '', window.location.pathname);
+    window.history.pushState(null, '', '/');
     setModalClosing(true);
     setTimeout(() => { setSelected(null); setModalClosing(false); }, 520);
   }
