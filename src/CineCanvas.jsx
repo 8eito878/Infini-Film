@@ -1311,7 +1311,11 @@ export default function CineCanvas() {
         const c = e.target?.closest('[data-slot]');
         if (c) {
           const slotIdx = parseInt(c.dataset.slot, 10);
-          lpTimer = setTimeout(() => { lpTimer = null; lpFired = true; longPressSaveRef.current?.(slotIdx); }, 500);
+          lpTimer = setTimeout(() => {
+            lpTimer = null; lpFired = true;
+            act = false; vp.classList.remove('drag');
+            longPressSaveRef.current?.(slotIdx);
+          }, 500);
         }
       }
     };
@@ -1385,10 +1389,16 @@ export default function CineCanvas() {
     vp.addEventListener('mousemove', onM);
     vp.addEventListener('mouseup', onE);
     vp.addEventListener('mouseleave', onE);
+    const onCancel = () => {
+      if (lpTimer) { clearTimeout(lpTimer); lpTimer = null; }
+      lpFired = false;
+      act = false; moved = false; pinching = false;
+      vp.classList.remove('drag');
+    };
     vp.addEventListener('touchstart', onS, { passive: true });
     vp.addEventListener('touchmove', onM, { passive: false });
     vp.addEventListener('touchend', onE, { passive: true });
-    vp.addEventListener('touchcancel', onE, { passive: true });
+    vp.addEventListener('touchcancel', onCancel, { passive: true });
     vp.addEventListener('wheel', onWheel, { passive: false });
     return () => {
       vp.removeEventListener('mousedown', onS);
@@ -1398,7 +1408,7 @@ export default function CineCanvas() {
       vp.removeEventListener('touchstart', onS);
       vp.removeEventListener('touchmove', onM);
       vp.removeEventListener('touchend', onE);
-      vp.removeEventListener('touchcancel', onE);
+      vp.removeEventListener('touchcancel', onCancel);
       vp.removeEventListener('wheel', onWheel);
       cancelAnimationFrame(momentumRaf.current);
       cancelAnimationFrame(animRaf.current);
