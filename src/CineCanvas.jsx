@@ -4,7 +4,7 @@ import { useState, useEffect, useLayoutEffect, useRef, useMemo } from "react";
 const TMDB_KEY = "16370ad515ac76b8ec2726ca32074643";
 const TMDB_BASE = "https://api.themoviedb.org/3";
 const TMDB_IMG = typeof window !== 'undefined' && window.innerWidth <= 768
-  ? "https://image.tmdb.org/t/p/w342"
+  ? "https://image.tmdb.org/t/p/w500"
   : "https://image.tmdb.org/t/p/w780";
 
 /* ── Genre mapping ───────────────────────────────────────────────────────── */
@@ -102,10 +102,12 @@ const CSS = `
   --accent:#e8e2d4;--accent-fg:#0a0a09;
   --overlay:rgba(0,0,0,.92);--backdrop:rgba(0,0,0,.5);--dot:#333;
   --card-shadow:0 0 0 1px rgba(255,255,255,0.045),inset 0 1px 0 rgba(255,255,255,0.06),inset 0 -1px 0 rgba(0,0,0,0.4),0 4px 14px rgba(0,0,0,0.45);
+  --bg-sat:#3a2510;
 }
 @media(prefers-color-scheme:light){
   :root{
     --bg:#f5f4f0;--bg2:#eceae4;--bg3:#f0efe9;
+    --bg-sat:#d0b890;
     --card:#e8e5de;--card2:#dedad2;
     --surface:rgba(248,247,243,.95);
     --bd:#d0ccc4;--bd2:#dedad2;
@@ -118,12 +120,13 @@ const CSS = `
 }
 
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{--sat:env(safe-area-inset-top,0px);}
 html,body{background:var(--bg);color:var(--t1);
   font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Helvetica Neue',system-ui,sans-serif;
   overflow:hidden;height:100%;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;-webkit-font-smoothing:antialiased;
   overscroll-behavior:none;}
-.app{position:fixed;inset:0;background:var(--bg);overflow:hidden;}
-.cv{position:absolute;inset:0;overflow:hidden;cursor:grab;touch-action:none;
+.app{position:fixed;inset:0;background:linear-gradient(180deg,var(--bg-sat) 0px,var(--bg) 70px);}
+.cv{position:absolute;inset:0;cursor:grab;touch-action:none;
   -webkit-user-select:none;user-select:none;}
 .cv.drag{cursor:grabbing;}
 .ci{position:absolute;top:0;left:0;will-change:transform;transform-origin:0 0;}
@@ -161,7 +164,6 @@ html,body{background:var(--bg);color:var(--t1);
   padding-top:max(12px,env(safe-area-inset-top));pointer-events:none;}
 .hdr-pill{display:flex;align-items:center;height:42px;
   background:var(--surface);
-  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
   border-radius:100px;border:1px solid var(--bd);box-shadow:0 4px 20px rgba(0,0,0,.2);
   pointer-events:all;overflow:hidden;}
 .hp-brand{display:flex;align-items:center;gap:7px;padding:0 14px;height:100%;}
@@ -228,11 +230,11 @@ html,body{background:var(--bg);color:var(--t1);
   user-select:none;-webkit-user-select:none;
   transition:opacity .15s ease .1s;}
 .pan-det-hdr:active{opacity:.45;transition:opacity .05s ease;}
-.pan-det-back{position:absolute;left:0;top:12.5px;transform:translateY(-50%);
+.pan-det-back{position:absolute;left:0;top:12px;transform:translateY(-50%);
   color:var(--t1);display:flex;align-items:center;padding:4px;
   opacity:0;transition:opacity .22s ease;}
 .pan-slider.to-detail .pan-det-back{opacity:1;transition:opacity .22s ease .14s;}
-.pan-det-title{display:block;padding-left:14px;font-size:12px;font-weight:700;color:var(--t1);letter-spacing:.04em;text-transform:uppercase;margin-top:4px;
+.pan-det-title{display:block;padding-left:9px;font-size:12px;font-weight:700;color:var(--t1);letter-spacing:.04em;text-transform:uppercase;margin-top:4px;
   opacity:0;transition:opacity .22s ease;}
 .pan-slider.to-detail .pan-det-title{opacity:1;transition:opacity .22s ease .14s;}
 .pan-det-foot{flex-shrink:0;height:max(60px,env(safe-area-inset-bottom));background:var(--bg3);}
@@ -863,6 +865,7 @@ function FilterPanel({ filters, onApply, onClose, showSort = false }) {
 }
 
 /* ── Saved Page ──────────────────────────────────────────────────────────── */
+function getSafeTop(){const d=document.createElement('div');d.style.cssText='position:fixed;top:env(safe-area-inset-top,0px);height:0;left:0;width:0;visibility:hidden;pointer-events:none';document.documentElement.appendChild(d);const v=d.getBoundingClientRect().top;d.remove();return v;}
 const SAVED_PAGE_STYLE = {
   paddingTop: "max(76px, calc(env(safe-area-inset-top) + 66px))",
 };
@@ -1268,7 +1271,7 @@ export default function CineCanvas() {
     let x, y;
     if (isMobile) {
       x = vw / 2 - (pitchX + (4 * CARD_W + 3 * GAP) / 2) * s;
-      y = vh / 2 - (pitchY / 2 + ((COLS_PER_TILE - 1) * (CARD_H + GAP) / COLS_PER_TILE + CARD_H) / 2) * s;
+      y = (vh - getSafeTop()) / 2 - (pitchY / 2 + ((COLS_PER_TILE - 1) * (CARD_H + GAP) / COLS_PER_TILE + CARD_H) / 2) * s;
       while (y > 0) y -= py; while (y < -py) y += py;
     } else {
       const totalW = TILES_X * pitchX * s;
@@ -1293,7 +1296,7 @@ export default function CineCanvas() {
       let tx, ty;
       if (isMobile) {
         tx = vw / 2 - (2 * (CARD_W + GAP) + CARD_W / 2) * targetS;
-        ty = vh / 2 - (pitchY / 2 + ((COLS_PER_TILE - 1) * (CARD_H + GAP) / COLS_PER_TILE + CARD_H) / 2) * targetS;
+        ty = (vh - getSafeTop()) / 2 - (pitchY / 2 + ((COLS_PER_TILE - 1) * (CARD_H + GAP) / COLS_PER_TILE + CARD_H) / 2) * targetS;
         while (ty > 0) ty -= tpy; while (ty < -tpy) ty += tpy;
       } else {
         const tpx = pitchX * targetS;
@@ -1304,7 +1307,7 @@ export default function CineCanvas() {
       }
       const startS = targetS * (isMobile ? 0.90 : 0.86);
       const sx = vw / 2 - (vw / 2 - tx) * startS / targetS;
-      const sy = vh / 2 - (vh / 2 - ty) * startS / targetS;
+      const _cyh=(vh-getSafeTop())/2; const sy=_cyh-(_cyh-ty)*startS/targetS;
       cancelAnimationFrame(animRaf.current);
       cancelAnimationFrame(momentumRaf.current);
       animActiveRef.current = false;
@@ -1323,7 +1326,7 @@ export default function CineCanvas() {
     let tx, ty;
     if (isMobile) {
       tx = vw / 2 - (2 * (CARD_W + GAP) + CARD_W / 2) * targetS;
-      ty = vh / 2 - (pitchY / 2 + ((COLS_PER_TILE - 1) * (CARD_H + GAP) / COLS_PER_TILE + CARD_H) / 2) * targetS;
+      ty = (vh - getSafeTop()) / 2 - (pitchY / 2 + ((COLS_PER_TILE - 1) * (CARD_H + GAP) / COLS_PER_TILE + CARD_H) / 2) * targetS;
       while (ty > 0) ty -= tpy; while (ty < -tpy) ty += tpy;
     } else {
       const tpx = pitchX * targetS;
@@ -1361,7 +1364,7 @@ export default function CineCanvas() {
       let tx, ty;
       if (isMobile) {
         tx = vw / 2 - (2 * (CARD_W + GAP) + CARD_W / 2) * targetS;
-        ty = vh / 2 - (pitchY / 2 + ((COLS_PER_TILE - 1) * (CARD_H + GAP) / COLS_PER_TILE + CARD_H) / 2) * targetS;
+        ty = (vh - getSafeTop()) / 2 - (pitchY / 2 + ((COLS_PER_TILE - 1) * (CARD_H + GAP) / COLS_PER_TILE + CARD_H) / 2) * targetS;
         while (ty > 0) ty -= tpy; while (ty < -tpy) ty += tpy;
       } else {
         const tpx = pitchX * targetS;
@@ -1414,7 +1417,7 @@ export default function CineCanvas() {
       let tx, ty;
       if (isMobile) {
         tx = vw / 2 - (2 * (CARD_W + GAP) + CARD_W / 2) * targetS;
-        ty = vh / 2 - (pitchY / 2 + ((COLS_PER_TILE - 1) * (CARD_H + GAP) / COLS_PER_TILE + CARD_H) / 2) * targetS;
+        ty = (vh - getSafeTop()) / 2 - (pitchY / 2 + ((COLS_PER_TILE - 1) * (CARD_H + GAP) / COLS_PER_TILE + CARD_H) / 2) * targetS;
         while (ty > 0) ty -= tpy; while (ty < -tpy) ty += tpy;
       } else {
         const tpx = pitchX * targetS;
