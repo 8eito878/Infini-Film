@@ -125,7 +125,7 @@ html,body{background:var(--bg);color:var(--t1);
   font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Helvetica Neue',system-ui,sans-serif;
   overflow:hidden;height:100%;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;-webkit-font-smoothing:antialiased;
   overscroll-behavior:none;}
-.app{position:fixed;inset:0;background:linear-gradient(180deg,var(--bg-sat) 0px,var(--bg) 70px);}
+.app{position:fixed;top:calc(-1 * env(safe-area-inset-top,0px));left:0;right:0;bottom:0;background:linear-gradient(180deg,var(--bg-sat) 0px,var(--bg) 70px);}
 .cv{position:absolute;inset:0;cursor:grab;touch-action:none;
   -webkit-user-select:none;user-select:none;}
 .cv.drag{cursor:grabbing;}
